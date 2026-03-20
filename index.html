@@ -1,0 +1,3905 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G検定 学習ツール</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --correct: #16a34a;
+  --correct-light: #dcfce7;
+  --wrong: #dc2626;
+  --wrong-light: #fee2e2;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-sub: #64748b;
+  --border: #e2e8f0;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 30px 0 20px;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+header p {
+  color: var(--text-sub);
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat-card .stat-label {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+
+.stat-correct .stat-value { color: var(--correct); }
+.stat-wrong .stat-value { color: var(--wrong); }
+.stat-rate .stat-value { color: var(--primary); }
+
+/* Category filter */
+.category-section {
+  margin-bottom: 20px;
+}
+
+.category-section label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.chip:hover { border-color: var(--primary); }
+.chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Question card */
+.question-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.question-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.question-category {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.question-number {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+}
+
+.question-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+/* Options */
+.options { display: flex; flex-direction: column; gap: 10px; }
+
+.option-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.option-btn:hover:not(.disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.option-btn .option-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  flex-shrink: 0;
+}
+
+.option-btn.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.option-btn.selected .option-label {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.option-btn.correct {
+  border-color: var(--correct);
+  background: var(--correct-light);
+}
+
+.option-btn.correct .option-label {
+  border-color: var(--correct);
+  background: var(--correct);
+  color: white;
+}
+
+.option-btn.wrong {
+  border-color: var(--wrong);
+  background: var(--wrong-light);
+}
+
+.option-btn.wrong .option-label {
+  border-color: var(--wrong);
+  background: var(--wrong);
+  color: white;
+}
+
+.option-btn.disabled { cursor: default; }
+
+/* Explanation */
+.explanation {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: #f1f5f9;
+  border-left: 4px solid var(--primary);
+  display: none;
+}
+
+.explanation.show { display: block; }
+
+.explanation h4 {
+  font-size: 0.9rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.explanation p {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.result-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.result-badge.correct-badge {
+  background: var(--correct-light);
+  color: var(--correct);
+}
+
+.result-badge.wrong-badge {
+  background: var(--wrong-light);
+  color: var(--wrong);
+}
+
+/* Buttons */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover { background: #1d4ed8; }
+
+.btn-outline {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Progress bar */
+.progress-section { margin-bottom: 20px; }
+.progress-bar-bg {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #7c3aed);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+}
+
+/* Start screen */
+.start-screen {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.start-screen h2 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.start-screen p {
+  color: var(--text-sub);
+  margin-bottom: 24px;
+}
+
+.mode-cards {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.mode-card {
+  padding: 20px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 160px;
+}
+
+.mode-card:hover { border-color: var(--primary); }
+.mode-card.active { border-color: var(--primary); background: var(--primary-light); }
+.mode-card h3 { font-size: 1rem; margin-bottom: 4px; }
+.mode-card p { font-size: 0.8rem; color: var(--text-sub); }
+
+/* Seen badge */
+.seen-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+
+.seen-stats .seen-count {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.seen-stats .unseen-count {
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.chip .chip-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  margin-left: 4px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: var(--border);
+  color: var(--text-sub);
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.chip.active .chip-badge {
+  background: rgba(255,255,255,0.3);
+  color: white;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.filter-btn:hover { border-color: var(--primary); }
+.filter-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.filter-btn.active[id="filterUnseen"] {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+.filter-btn.active[id="filterWrong"] {
+  background: var(--wrong);
+  border-color: var(--wrong);
+}
+.filter-btn.active[id="filterPassed"] {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.question-seen-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.question-seen-badge.new {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.question-seen-badge.seen {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+/* Pass button */
+.pass-btn {
+  display: block;
+  margin: 12px auto 0;
+  padding: 8px 24px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pass-btn:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: #fffbeb;
+}
+
+.pass-btn .pass-key {
+  font-size: 0.72rem;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--border);
+  color: var(--text-sub);
+}
+
+.stat-pass .stat-value { color: #f59e0b; }
+
+.result-badge.pass-badge {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.clear-history-btn {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 8px;
+}
+
+.clear-history-btn:hover { color: var(--wrong); }
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.78rem;
+  color: var(--text-sub);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  header h1 { font-size: 1.4rem; }
+  .question-card { padding: 20px; }
+  .stats-bar { gap: 8px; }
+  .stat-card { padding: 10px; min-width: 80px; }
+  .stat-card .stat-value { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>G検定 学習ツール</h1>
+    <p>JDLA ジェネラリスト検定 対策問題集</p>
+  </header>
+
+  <!-- Start Screen -->
+  <div id="startScreen">
+    <div class="question-card start-screen">
+      <h2>学習モードを選択</h2>
+      <p>カテゴリを選んで学習を始めましょう</p>
+
+      <div class="mode-cards">
+        <div class="mode-card active" data-count="10" onclick="selectMode(this)">
+          <h3>10問</h3>
+          <p>サクッと復習</p>
+        </div>
+        <div class="mode-card" data-count="25" onclick="selectMode(this)">
+          <h3>25問</h3>
+          <p>しっかり学習</p>
+        </div>
+        <div class="mode-card" data-count="50" onclick="selectMode(this)">
+          <h3>50問</h3>
+          <p>模擬テスト</p>
+        </div>
+        <div class="mode-card" data-count="0" onclick="selectMode(this)">
+          <h3>全問</h3>
+          <p>完全制覇</p>
+        </div>
+      </div>
+
+      <div id="seenStats" class="seen-stats"></div>
+
+      <div class="filter-row">
+        <button class="filter-btn" id="filterAll" onclick="setQuestionFilter('all')">すべて</button>
+        <button class="filter-btn" id="filterUnseen" onclick="setQuestionFilter('unseen')">未回答のみ</button>
+        <button class="filter-btn" id="filterSeen" onclick="setQuestionFilter('seen')">回答済みのみ</button>
+        <button class="filter-btn" id="filterWrong" onclick="setQuestionFilter('wrong')">間違えた問題</button>
+        <button class="filter-btn" id="filterPassed" onclick="setQuestionFilter('passed')">パスした問題</button>
+      </div>
+
+      <div class="category-section">
+        <label>出題カテゴリ（複数選択可・未選択で全カテゴリ）</label>
+        <div class="category-chips" id="categoryChips"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:24px;">
+        <button class="btn btn-primary" onclick="startQuiz()">学習スタート</button>
+      </div>
+      <div style="text-align:center;">
+        <button class="clear-history-btn" onclick="clearSeenHistory()">回答履歴をリセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quizScreen" style="display:none;">
+    <div class="stats-bar">
+      <div class="stat-card stat-correct">
+        <div class="stat-value" id="correctCount">0</div>
+        <div class="stat-label">正解</div>
+      </div>
+      <div class="stat-card stat-wrong">
+        <div class="stat-value" id="wrongCount">0</div>
+        <div class="stat-label">不正解</div>
+      </div>
+      <div class="stat-card stat-pass">
+        <div class="stat-value" id="passCount">0</div>
+        <div class="stat-label">パス</div>
+      </div>
+      <div class="stat-card stat-rate">
+        <div class="stat-value" id="rateValue">-</div>
+        <div class="stat-label">正答率</div>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-label">
+        <span id="progressText">1 / 10</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="question-card" id="questionCard">
+      <div class="question-meta">
+        <span><span class="question-category" id="qCategory"></span><span id="qSeenBadge"></span></span>
+        <span class="question-number" id="qNumber"></span>
+      </div>
+      <div class="question-text" id="qText"></div>
+      <div class="options" id="optionsArea"></div>
+      <button class="pass-btn" id="passBtn" onclick="passQuestion()">パス（わからない）<span class="pass-key">P</span></button>
+      <div class="explanation" id="explanation">
+        <div id="resultBadge"></div>
+        <h4>解説</h4>
+        <p id="explanationText"></p>
+      </div>
+      <div class="btn-row" id="btnRow" style="display:none;">
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">次の問題</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="resultScreen" style="display:none;">
+    <div class="question-card" style="text-align:center;">
+      <h2 style="margin-bottom:16px;">学習完了!</h2>
+      <div class="stats-bar" style="justify-content:center;">
+        <div class="stat-card stat-correct">
+          <div class="stat-value" id="finalCorrect">0</div>
+          <div class="stat-label">正解</div>
+        </div>
+        <div class="stat-card stat-wrong">
+          <div class="stat-value" id="finalWrong">0</div>
+          <div class="stat-label">不正解</div>
+        </div>
+        <div class="stat-card stat-pass">
+          <div class="stat-value" id="finalPass">0</div>
+          <div class="stat-label">パス</div>
+        </div>
+        <div class="stat-card stat-rate">
+          <div class="stat-value" id="finalRate">0%</div>
+          <div class="stat-label">正答率</div>
+        </div>
+      </div>
+      <div id="resultMessage" style="margin:20px 0;font-size:1.1rem;font-weight:600;"></div>
+
+      <div id="categoryBreakdown" style="margin:20px 0;text-align:left;"></div>
+
+      <div class="btn-row" style="flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="reviewWrong()">間違えた問題を復習</button>
+        <button class="btn btn-outline" onclick="reviewPassed()">パスした問題を復習</button>
+        <button class="btn btn-primary" onclick="resetQuiz()">もう一度</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    G検定 学習ツール — JDLA ディープラーニング ジェネラリスト検定 対策用<br>
+    ※本ツールは非公式の学習補助ツールです
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// Question Database
+// ============================================================
+const questions = [
+  // ── カテゴリ 1: AI の基礎知識 ──
+  {
+    category: "AIの基礎知識",
+    question: "人工知能の研究において、「第一次AIブーム」が起こった時期として最も適切なものはどれか。",
+    options: ["1950年代〜1960年代", "1970年代〜1980年代", "1990年代〜2000年代", "2010年代〜現在"],
+    answer: 0,
+    explanation: "第一次AIブームは1950年代〜1960年代に起こりました。推論・探索の技術が中心で、迷路やパズルなどの「トイ・プロブレム（おもちゃの問題）」は解けるものの、現実の複雑な問題には対応できず、ブームは終息しました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "アラン・チューリングが1950年に提案した、機械が知的かどうかを判定するテストは何か。",
+    options: ["チューリングテスト", "ベンチマークテスト", "ロールシャッハテスト", "ヴォイトカンプフテスト"],
+    answer: 0,
+    explanation: "チューリングテスト（模倣ゲーム）は、アラン・チューリングが1950年の論文「Computing Machinery and Intelligence」で提案しました。人間の審査員が、テキストベースのやり取りで相手が人間か機械か判別できなければ、その機械は知的であると判定します。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "「人工知能」という用語が初めて使われた1956年の会議はどれか。",
+    options: ["ダートマス会議", "チューリング会議", "MIT AI会議", "スタンフォードAI会議"],
+    answer: 0,
+    explanation: "1956年にダートマス大学で開催されたダートマス会議（Dartmouth Conference）で、ジョン・マッカーシーが「Artificial Intelligence（人工知能）」という用語を初めて使用しました。この会議がAI研究の出発点とされています。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "第二次AIブームでは主にどのような技術が中心だったか。",
+    options: ["探索・推論", "エキスパートシステム（知識表現）", "機械学習", "ディープラーニング"],
+    answer: 1,
+    explanation: "第二次AIブーム（1980年代）では、専門家の知識をルールとしてコンピュータに組み込む「エキスパートシステム」が中心でした。しかし、知識を手動で記述・管理するコスト（知識獲得のボトルネック）が問題となり、ブームは終息しました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "強いAI（Strong AI）の説明として最も適切なものはどれか。",
+    options: [
+      "特定のタスクに特化した人工知能",
+      "人間と同等以上の汎用的な知的能力を持つ人工知能",
+      "大規模なデータを処理できる人工知能",
+      "リアルタイム処理が可能な人工知能"
+    ],
+    answer: 1,
+    explanation: "強いAI（汎用人工知能 / AGI）とは、人間と同等以上の汎用的な知的能力を持つAIを指します。一方、現在実用化されているAIは特定タスクに特化した「弱いAI（Narrow AI）」です。強いAIは現時点では実現されていません。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "中国語の部屋（Chinese Room）の思考実験を提唱した哲学者は誰か。",
+    options: ["ジョン・サール", "アラン・チューリング", "マービン・ミンスキー", "ノーム・チョムスキー"],
+    answer: 0,
+    explanation: "「中国語の部屋」は哲学者ジョン・サールが1980年に提唱した思考実験です。部屋の中の人がマニュアルに従って中国語の質問に回答しても、中国語を「理解」しているわけではないという議論で、強いAI仮説への反論として知られています。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "フレーム問題とは何か。最も適切な説明を選べ。",
+    options: [
+      "画像認識において枠（フレーム）の検出が困難な問題",
+      "AIが行動を起こす際に、考慮すべき事柄と無視してよい事柄を適切に判断できない問題",
+      "動画のフレームレートが低下するとAIの判断精度が落ちる問題",
+      "知識をフレーム構造で表現する際にメモリが不足する問題"
+    ],
+    answer: 1,
+    explanation: "フレーム問題は、1969年にマッカーシーとヘイズが提唱したAIの根本的問題です。AIが行動の結果を予測する際、変化する事柄と変化しない事柄を適切に区別できないという問題を指します。現実世界の無限の可能性を全て考慮することは不可能であるため、AI研究における重要な課題です。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "シンボルグラウンディング問題の説明として最も適切なものはどれか。",
+    options: [
+      "記号（シンボル）をコンピュータで効率的に処理できない問題",
+      "記号とその意味（実世界の対象）を結びつけることが困難な問題",
+      "記号処理の計算量が指数関数的に増大する問題",
+      "異なるプログラミング言語間で記号の互換性がない問題"
+    ],
+    answer: 1,
+    explanation: "シンボルグラウンディング問題は、1990年にスティーヴン・ハーナッドが提唱しました。コンピュータが扱う記号（シンボル）を、実世界の意味や概念と結びつけること（グラウンディング）が困難であるという問題です。例えば「シマウマ」という記号を、実際の動物と結びつけて理解することがAIには難しいという課題です。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "シンギュラリティ（技術的特異点）の概念を広く普及させた人物は誰か。",
+    options: ["レイ・カーツワイル", "イーロン・マスク", "ジェフリー・ヒントン", "ヤン・ルカン"],
+    answer: 0,
+    explanation: "レイ・カーツワイルは著書『The Singularity Is Near（シンギュラリティは近い）』（2005年）で、2045年頃にAIが人間の知能を超える技術的特異点（シンギュラリティ）が訪れるという予測を広く知らしめました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "知識表現の方法の一つである「オントロジー」の説明として最も適切なものはどれか。",
+    options: [
+      "機械学習モデルのパラメータを最適化する手法",
+      "概念間の関係を体系的に定義する知識の構造化手法",
+      "自然言語をプログラミング言語に変換する手法",
+      "データベースのインデックスを効率的に構築する手法"
+    ],
+    answer: 1,
+    explanation: "オントロジーとは、ある領域の概念とそれらの関係を形式的に定義し、体系的に整理する知識表現の手法です。情報工学では、知識共有や意味の明確化のために使われます。例えば、医療分野では病名、症状、治療法の関係をオントロジーで表現します。"
+  },
+
+  // ── カテゴリ 2: 機械学習 ──
+  {
+    category: "機械学習",
+    question: "教師あり学習の説明として最も適切なものはどれか。",
+    options: [
+      "報酬信号を最大化するように行動方針を学習する手法",
+      "入力データと正解ラベルのペアからパターンを学習する手法",
+      "ラベルなしデータからデータの構造を発見する手法",
+      "人間の教師が逐一指示を与えながら学習させる手法"
+    ],
+    answer: 1,
+    explanation: "教師あり学習（Supervised Learning）は、入力データとそれに対応する正解ラベル（教師データ）のペアを使って、入力から出力への対応関係を学習する手法です。分類（Classification）や回帰（Regression）が代表的なタスクです。"
+  },
+  {
+    category: "機械学習",
+    question: "k-means法は次のどの学習手法に分類されるか。",
+    options: ["教師あり学習", "教師なし学習", "強化学習", "半教師あり学習"],
+    answer: 1,
+    explanation: "k-means法は教師なし学習（Unsupervised Learning）のクラスタリング手法です。ラベルのないデータをk個のクラスタに分割します。各データ点を最も近いクラスタ中心に割り当て、クラスタ中心を再計算する操作を収束するまで繰り返します。"
+  },
+  {
+    category: "機械学習",
+    question: "過学習（Overfitting）の説明として最も適切なものはどれか。",
+    options: [
+      "学習データが不足して、モデルがパターンを学習できない状態",
+      "学習データに対して過剰に適合し、未知のデータに対する汎化性能が低い状態",
+      "学習率が大きすぎて、損失関数が収束しない状態",
+      "計算リソースの不足により学習が完了しない状態"
+    ],
+    answer: 1,
+    explanation: "過学習（Overfitting）とは、モデルが訓練データに過剰に適合してしまい、訓練データでは高い精度を示すが、未知のテストデータでは精度が低下する現象です。正則化、ドロップアウト、早期終了（Early Stopping）、データの増量などが対策として用いられます。"
+  },
+  {
+    category: "機械学習",
+    question: "交差検証（Cross-Validation）の目的として最も適切なものはどれか。",
+    options: [
+      "学習データを増やすこと",
+      "モデルの汎化性能をより正確に評価すること",
+      "計算時間を短縮すること",
+      "特徴量の数を削減すること"
+    ],
+    answer: 1,
+    explanation: "交差検証（特にk分割交差検証）は、データをk個に分割し、k-1個で学習・1個で評価を繰り返すことで、モデルの汎化性能をより安定的に評価する手法です。少ないデータでも信頼性の高い評価が得られます。"
+  },
+  {
+    category: "機械学習",
+    question: "ランダムフォレストの説明として最も適切なものはどれか。",
+    options: [
+      "単一の決定木を深く成長させる手法",
+      "複数の決定木を組み合わせるアンサンブル学習手法",
+      "ランダムにデータを削除して学習する手法",
+      "森林画像を分類するための専用アルゴリズム"
+    ],
+    answer: 1,
+    explanation: "ランダムフォレストは、ブートストラップサンプリングとランダムな特徴量選択を用いて多数の決定木を構築し、それらの予測を多数決（分類）や平均（回帰）で統合するアンサンブル学習手法です。過学習に強く、汎化性能が高い特徴があります。"
+  },
+  {
+    category: "機械学習",
+    question: "サポートベクターマシン（SVM）において、マージンを最大化する目的は何か。",
+    options: [
+      "学習データへの適合度を最大にするため",
+      "汎化性能を高めるため",
+      "計算時間を短縮するため",
+      "特徴量の次元を増やすため"
+    ],
+    answer: 1,
+    explanation: "SVMではクラス間のマージン（決定境界とそれに最も近いデータ点との距離）を最大化することで、未知データに対する汎化性能を高めます。マージンが大きいほど、新しいデータに対して正しく分類できる可能性が高くなります。"
+  },
+  {
+    category: "機械学習",
+    question: "決定木の分岐基準としてよく用いられる指標はどれか。",
+    options: ["学習率", "ジニ不純度", "勾配", "バッチサイズ"],
+    answer: 1,
+    explanation: "ジニ不純度（Gini Impurity）は、決定木の各ノードでデータをどう分割するかを決める際の指標です。情報利得（エントロピーの減少）も同様に使われます。ジニ不純度が小さいほど、ノード内のデータが同質であることを意味します。"
+  },
+  {
+    category: "機械学習",
+    question: "次元削減の手法である主成分分析（PCA）の説明として最も適切なものはどれか。",
+    options: [
+      "データのクラスタを発見する手法",
+      "データの分散が最大となる方向を見つけ、低次元に射影する手法",
+      "欠損値を補完する手法",
+      "データの外れ値を検出する手法"
+    ],
+    answer: 1,
+    explanation: "主成分分析（PCA: Principal Component Analysis）は、データの分散が最大となる軸（主成分）を見つけ、データをより少ない次元で表現する次元削減手法です。情報の損失を最小限に抑えながら、データの可視化や前処理に活用されます。"
+  },
+  {
+    category: "機械学習",
+    question: "強化学習における「報酬」の役割として最も適切なものはどれか。",
+    options: [
+      "正解ラベルとしてモデルに正解を教える",
+      "エージェントの行動の良し悪しを評価する信号を提供する",
+      "データの前処理を行う",
+      "モデルのパラメータを直接更新する"
+    ],
+    answer: 1,
+    explanation: "強化学習において、報酬（Reward）はエージェントの行動に対する評価信号です。エージェントは環境と相互作用しながら、累積報酬を最大化する方策（Policy）を学習します。正解ラベルではなく、行動の結果として得られるスカラー値です。"
+  },
+  {
+    category: "機械学習",
+    question: "バイアスとバリアンスのトレードオフにおいて、モデルが複雑すぎる場合に起こりやすいのはどれか。",
+    options: [
+      "高バイアス・低バリアンス",
+      "低バイアス・高バリアンス",
+      "高バイアス・高バリアンス",
+      "低バイアス・低バリアンス"
+    ],
+    answer: 1,
+    explanation: "モデルが複雑すぎる場合、訓練データに過度に適合（過学習）し、バイアスは低くなりますがバリアンス（データの変動に対する感度）が高くなります。逆に、モデルが単純すぎる場合は高バイアス・低バリアンスとなります（未学習）。"
+  },
+  {
+    category: "機械学習",
+    question: "勾配降下法（Gradient Descent）における学習率の役割として最も適切なものはどれか。",
+    options: [
+      "モデルの層の数を決定する",
+      "パラメータ更新の幅を制御する",
+      "訓練データの分割比率を決める",
+      "活性化関数の種類を選択する"
+    ],
+    answer: 1,
+    explanation: "学習率（Learning Rate）は、勾配降下法でパラメータを更新する際のステップサイズを制御するハイパーパラメータです。大きすぎると最適解を飛び越えて発散し、小さすぎると収束が遅くなります。適切な値の設定が重要です。"
+  },
+  {
+    category: "機械学習",
+    question: "精度（Accuracy）だけでは不十分な評価指標となるケースとして最も適切なものはどれか。",
+    options: [
+      "データが十分に大きい場合",
+      "クラスの分布が極端に偏っている場合（不均衡データ）",
+      "二値分類の場合",
+      "特徴量が少ない場合"
+    ],
+    answer: 1,
+    explanation: "クラスの分布が極端に偏っている場合（例：陽性1%、陰性99%）、全てを陰性と予測するだけで99%の精度が出てしまいます。このような不均衡データでは、適合率（Precision）、再現率（Recall）、F1スコアなどの指標が重要です。"
+  },
+
+  // ── カテゴリ 3: ディープラーニング基礎 ──
+  {
+    category: "ディープラーニング基礎",
+    question: "ニューラルネットワークにおける活性化関数の役割として最も適切なものはどれか。",
+    options: [
+      "データを正規化する",
+      "非線形性を導入し、複雑な関数を表現可能にする",
+      "学習データのサンプリングを行う",
+      "勾配を計算する"
+    ],
+    answer: 1,
+    explanation: "活性化関数は、ニューラルネットワークに非線形性を導入する役割があります。活性化関数がなければ、何層重ねても全体は線形変換にしかならず、複雑なパターンを学習できません。代表的な活性化関数にReLU、Sigmoid、tanhなどがあります。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "ReLU関数の式として正しいものはどれか。",
+    options: ["f(x) = max(0, x)", "f(x) = 1 / (1 + e^(-x))", "f(x) = tanh(x)", "f(x) = x^2"],
+    answer: 0,
+    explanation: "ReLU（Rectified Linear Unit）はf(x) = max(0, x)で定義されます。入力が正の場合はそのまま出力し、負の場合は0を出力します。計算が単純で、勾配消失問題を緩和する効果があるため、ディープラーニングで広く使われています。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "誤差逆伝播法（Backpropagation）の説明として最も適切なものはどれか。",
+    options: [
+      "入力層から出力層に向かって信号を伝播させる手法",
+      "出力層での誤差を逆方向に伝播させ、各パラメータの勾配を効率的に計算する手法",
+      "学習データを逆順に並び替えて学習する手法",
+      "ネットワークの層を逆順に積み重ねる手法"
+    ],
+    answer: 1,
+    explanation: "誤差逆伝播法（Backpropagation）は、出力層で計算された損失を逆方向（出力層→入力層）に伝播させ、連鎖律（Chain Rule）を用いて各パラメータに対する勾配を効率的に計算するアルゴリズムです。この勾配を使ってパラメータを更新します。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "勾配消失問題の説明として最も適切なものはどれか。",
+    options: [
+      "学習率が大きすぎてパラメータが発散する問題",
+      "ネットワークが深くなると、下位層での勾配が極端に小さくなり学習が進まなくなる問題",
+      "データが不足して勾配が計算できない問題",
+      "GPUのメモリ不足で勾配の計算ができない問題"
+    ],
+    answer: 1,
+    explanation: "勾配消失問題（Vanishing Gradient Problem）は、ネットワークが深くなると、誤差逆伝播時に勾配が層を遡るごとに小さくなり、下位層のパラメータがほとんど更新されなくなる問題です。ReLU関数の使用、残差接続（Skip Connection）、バッチ正規化などが対策として用いられます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "ドロップアウト（Dropout）の目的として最も適切なものはどれか。",
+    options: [
+      "学習速度を向上させる",
+      "過学習を抑制する（正則化）",
+      "ネットワークの層数を減らす",
+      "データの欠損値を処理する"
+    ],
+    answer: 1,
+    explanation: "ドロップアウトは、学習時にランダムにニューロンを無効化する正則化手法です。これにより、特定のニューロンへの過度な依存を防ぎ、過学習を抑制します。推論時にはすべてのニューロンを使い、出力にドロップ率を乗じて調整します。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "バッチ正規化（Batch Normalization）の効果として最も適切なものはどれか。",
+    options: [
+      "データのサンプリング方法を改善する",
+      "各層の入力分布を安定させ、学習を安定化・高速化する",
+      "バッチサイズを自動的に最適化する",
+      "テストデータの分布を学習データに合わせる"
+    ],
+    answer: 1,
+    explanation: "バッチ正規化は、各ミニバッチについて層の入力を平均0、分散1に正規化し、さらにスケール・シフトパラメータで変換する手法です。内部共変量シフトを軽減し、学習の安定化と高速化に貢献します。また、軽度の正則化効果もあります。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "最適化手法「Adam」の特徴として最も適切なものはどれか。",
+    options: [
+      "学習率を固定して最急降下法を行う",
+      "モメンタムとRMSPropを組み合わせた適応的学習率手法",
+      "各パラメータに同一の学習率を使用する",
+      "二次微分（ヘッセ行列）を用いた最適化手法"
+    ],
+    answer: 1,
+    explanation: "Adam（Adaptive Moment Estimation）は、勾配の一次モーメント（平均）と二次モーメント（分散）の移動平均を利用して、パラメータごとに適応的に学習率を調整する最適化手法です。SGDにモメンタムとRMSPropの利点を組み合わせたものとして広く使われています。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "損失関数「交差エントロピー誤差」が主に使われるタスクはどれか。",
+    options: ["回帰", "分類", "クラスタリング", "次元削減"],
+    answer: 1,
+    explanation: "交差エントロピー誤差（Cross-Entropy Loss）は、分類タスクで広く使われる損失関数です。モデルの出力する確率分布と正解のラベル分布の差を測ります。回帰タスクでは平均二乗誤差（MSE）がよく使われます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "転移学習（Transfer Learning）の説明として最も適切なものはどれか。",
+    options: [
+      "異なるハードウェア間でモデルを移植する技術",
+      "あるタスクで学習済みのモデルを別のタスクに活用する手法",
+      "データを一つのモデルから別のモデルに転送する手法",
+      "オンライン学習とオフライン学習を切り替える手法"
+    ],
+    answer: 1,
+    explanation: "転移学習は、大規模データで事前学習（Pre-training）されたモデルの知識を、別のタスクに活用する手法です。少ないデータでも高い精度を実現でき、学習時間も短縮できます。特に画像認識や自然言語処理で広く使われています。"
+  },
+
+  // ── カテゴリ 4: ディープラーニングの手法 ──
+  {
+    category: "ディープラーニングの手法",
+    question: "畳み込みニューラルネットワーク（CNN）の畳み込み層の役割として最も適切なものはどれか。",
+    options: [
+      "画像のサイズを拡大する",
+      "局所的な特徴（エッジ、テクスチャなど）を抽出する",
+      "データをランダムに並び替える",
+      "出力層での確率分布を生成する"
+    ],
+    answer: 1,
+    explanation: "CNNの畳み込み層は、フィルタ（カーネル）を入力データ上でスライドさせることで、エッジ、コーナー、テクスチャなどの局所的な特徴を階層的に抽出します。浅い層では低レベルの特徴を、深い層では高レベルの特徴を学習します。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "プーリング層の役割として最も適切なものはどれか。",
+    options: [
+      "特徴マップの次元を削減し、位置の微小なずれに対する頑健性を高める",
+      "非線形変換を行う",
+      "パラメータを学習する",
+      "データを正規化する"
+    ],
+    answer: 0,
+    explanation: "プーリング層は、特徴マップの空間的なサイズを縮小し、計算量を削減するとともに、位置の微小なずれに対する不変性を獲得する役割があります。最大プーリング（Max Pooling）と平均プーリング（Average Pooling）が代表的です。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "RNN（Recurrent Neural Network）が得意とするデータの種類はどれか。",
+    options: ["画像データ", "時系列・系列データ", "表形式データ", "グラフ構造データ"],
+    answer: 1,
+    explanation: "RNN（再帰型ニューラルネットワーク）は、隠れ状態を通じて過去の情報を保持できるため、時系列データや自然言語などの系列データの処理に適しています。ただし、長い系列では勾配消失・爆発問題が起きやすいという課題があります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "LSTM（Long Short-Term Memory）がRNNの課題を解決するために導入した仕組みはどれか。",
+    options: [
+      "畳み込み層",
+      "ゲート機構（忘却ゲート、入力ゲート、出力ゲート）とセル状態",
+      "アテンション機構",
+      "残差接続"
+    ],
+    answer: 1,
+    explanation: "LSTMは、忘却ゲート・入力ゲート・出力ゲートの3つのゲート機構とセル状態を導入することで、長期依存関係の学習を可能にしました。ゲートが情報の取捨選択を制御し、RNNの勾配消失問題を大幅に緩和しています。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "GAN（Generative Adversarial Network）を構成する2つのネットワークは何か。",
+    options: [
+      "エンコーダとデコーダ",
+      "ジェネレータ（生成器）とディスクリミネータ（識別器）",
+      "教師ネットワークと生徒ネットワーク",
+      "特徴抽出器と分類器"
+    ],
+    answer: 1,
+    explanation: "GAN（敵対的生成ネットワーク）は、イアン・グッドフェローが2014年に提案しました。データを生成するジェネレータと、本物か偽物かを判定するディスクリミネータの2つのネットワークが敵対的に学習することで、精巧なデータ生成が可能になります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Transformerの中核となる仕組みはどれか。",
+    options: [
+      "畳み込み",
+      "再帰接続（Recurrence）",
+      "自己注意機構（Self-Attention）",
+      "強化学習"
+    ],
+    answer: 2,
+    explanation: "Transformer（2017年、Vaswaniら「Attention Is All You Need」）は、自己注意機構（Self-Attention）を中核とするアーキテクチャです。RNNやCNNを使わず、系列内の任意の位置間の関係を直接計算でき、並列処理も可能です。BERT、GPTなどの基盤となっています。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "BERTの学習で使われる手法はどれか。",
+    options: [
+      "教師あり分類学習のみ",
+      "マスク言語モデル（MLM）と次文予測（NSP）",
+      "強化学習による方策最適化",
+      "画像とテキストの対照学習"
+    ],
+    answer: 1,
+    explanation: "BERT（Bidirectional Encoder Representations from Transformers）は、入力テキストの一部をマスクして予測するマスク言語モデル（MLM）と、2つの文が連続しているか予測する次文予測（NSP）で事前学習されます。双方向の文脈を捉えることが特徴です。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "ResNet（Residual Network）が導入した重要な概念はどれか。",
+    options: [
+      "ドロップアウト",
+      "残差接続（Skip Connection）",
+      "アテンション機構",
+      "敵対的学習"
+    ],
+    answer: 1,
+    explanation: "ResNet（2015年、He et al.）は残差接続（Skip Connection / Shortcut Connection）を導入しました。入力をいくつかの層を飛び越えて出力に直接加算することで、勾配消失問題を緩和し、非常に深いネットワーク（100層以上）の学習を可能にしました。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "VAE（Variational Autoencoder）と通常のオートエンコーダの最大の違いは何か。",
+    options: [
+      "層の数が異なる",
+      "潜在空間を確率分布としてモデル化し、新しいデータを生成できる",
+      "教師あり学習を使う",
+      "画像しか扱えない"
+    ],
+    answer: 1,
+    explanation: "VAEは、潜在空間を確率分布（通常は正規分布）としてモデル化します。これにより、潜在空間からサンプリングして新しいデータを生成できます。通常のオートエンコーダは再構成のみで、生成モデルとしての能力は限定的です。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "物体検出タスクにおいて、検出精度の評価指標として広く使われるものはどれか。",
+    options: ["BLEU", "mAP（mean Average Precision）", "RMSE", "AUC"],
+    answer: 1,
+    explanation: "mAP（mean Average Precision）は、物体検出タスクにおける標準的な評価指標です。各クラスのAP（Average Precision）を平均したもので、検出の位置精度とクラス分類の両方を考慮した総合的な評価が可能です。"
+  },
+
+  // ── カテゴリ 5: 数理・統計 ──
+  {
+    category: "数理・統計",
+    question: "ベイズの定理の説明として最も適切なものはどれか。",
+    options: [
+      "事前確率と尤度から事後確率を求める定理",
+      "大数の法則を定式化した定理",
+      "確率変数の期待値を求める定理",
+      "独立な事象の確率を乗じる定理"
+    ],
+    answer: 0,
+    explanation: "ベイズの定理は、P(A|B) = P(B|A)P(A) / P(B) と表され、事前確率P(A)とデータの尤度P(B|A)から事後確率P(A|B)を計算します。新しいデータを得るたびに信念を更新できるため、機械学習や統計推論で重要な役割を果たします。"
+  },
+  {
+    category: "数理・統計",
+    question: "標準偏差の説明として最も適切なものはどれか。",
+    options: [
+      "データの中央値からの平均的なずれ",
+      "データの平均値からの散らばり（分散の正の平方根）",
+      "データの最大値と最小値の差",
+      "データ間の相関の強さ"
+    ],
+    answer: 1,
+    explanation: "標準偏差は分散の正の平方根で、データが平均からどれだけ散らばっているかを表す指標です。分散と違い、元のデータと同じ単位で解釈できるため、データの散らばりを直感的に理解しやすいです。"
+  },
+  {
+    category: "数理・統計",
+    question: "尤度関数（Likelihood Function）の説明として最も適切なものはどれか。",
+    options: [
+      "データの分布を直接表す関数",
+      "パラメータを固定した時のデータの出現確率を、パラメータの関数として見たもの",
+      "損失関数の逆数",
+      "確率密度関数の累積値"
+    ],
+    answer: 1,
+    explanation: "尤度関数は、観測データが与えられた下で、モデルのパラメータがどれだけ「もっともらしいか」を表す関数です。最尤推定では、この尤度関数（もしくは対数尤度）を最大化するパラメータを求めます。"
+  },
+  {
+    category: "数理・統計",
+    question: "正規分布（ガウス分布）の特徴として正しいものはどれか。",
+    options: [
+      "平均と分散の2つのパラメータで完全に特徴づけられる",
+      "常に0以上の値しかとらない",
+      "離散的な確率分布である",
+      "分散は常に1である"
+    ],
+    answer: 0,
+    explanation: "正規分布は平均μと分散σ²の2つのパラメータで完全に特徴づけられる連続確率分布です。左右対称の釣鐘型の形状を持ち、中心極限定理により自然界や社会現象で広く見られます。"
+  },
+  {
+    category: "数理・統計",
+    question: "情報量（自己情報量）の単位「ビット」を使う場合の対数の底はいくつか。",
+    options: ["e（自然対数）", "2", "10", "π"],
+    answer: 1,
+    explanation: "情報量をビット単位で測る場合、対数の底は2を使います（I = -log₂P(x)）。底がeの場合はナット（nat）、底が10の場合はハートレー（hartley）という単位になります。機械学習では底eを使うことも多いです。"
+  },
+
+  // ── カテゴリ 6: 自然言語処理 ──
+  {
+    category: "自然言語処理",
+    question: "Word2Vecの説明として最も適切なものはどれか。",
+    options: [
+      "文書を分類するための教師あり学習モデル",
+      "単語を固定長のベクトル（分散表現）に変換する手法",
+      "文法構造を解析するルールベースの手法",
+      "文書を要約するための生成モデル"
+    ],
+    answer: 1,
+    explanation: "Word2Vec（2013年、Mikolov et al.）は、大量のテキストから単語の分散表現（Dense Vector）を学習する手法です。CBOW（周辺語から中心語を予測）とSkip-gram（中心語から周辺語を予測）の2つのモデルがあり、意味の近い単語が近いベクトルになります。"
+  },
+  {
+    category: "自然言語処理",
+    question: "Attention機構の主な利点として最も適切なものはどれか。",
+    options: [
+      "モデルのパラメータ数を削減できる",
+      "入力系列の重要な部分に動的に注目でき、長距離依存関係を捉えやすくなる",
+      "学習データの量を減らせる",
+      "CPU上でのみ高速に動作する"
+    ],
+    answer: 1,
+    explanation: "Attention機構は、入力系列の各要素の重要度を動的に計算し、重要な部分に重み付けて情報を統合する仕組みです。RNNの固定長ベクトルのボトルネックを解消し、長距離依存関係の学習を大幅に改善しました。"
+  },
+  {
+    category: "自然言語処理",
+    question: "大規模言語モデル（LLM）において「ハルシネーション」とは何を指すか。",
+    options: [
+      "モデルが学習データを暗記してしまうこと",
+      "モデルがもっともらしいが事実と異なる内容を生成すること",
+      "モデルの出力が人間に理解できないこと",
+      "モデルの生成速度が遅くなること"
+    ],
+    answer: 1,
+    explanation: "ハルシネーション（Hallucination / 幻覚）とは、LLMが事実に基づかない、もっともらしいが誤った情報を自信を持って生成してしまう現象です。LLMの重要な課題の一つであり、RAG（検索拡張生成）やファクトチェックなどの対策が研究されています。"
+  },
+  {
+    category: "自然言語処理",
+    question: "GPTシリーズのモデルアーキテクチャの特徴として最も適切なものはどれか。",
+    options: [
+      "TransformerのEncoder部分のみを使用",
+      "TransformerのDecoder部分のみを使用",
+      "RNNとCNNを組み合わせた構造",
+      "TransformerのEncoderとDecoderの両方を使用"
+    ],
+    answer: 1,
+    explanation: "GPT（Generative Pre-trained Transformer）シリーズは、TransformerのDecoder部分のみを使用する自己回帰モデルです。左から右への言語モデル（次の単語予測）で事前学習されます。一方、BERTはEncoder部分のみを使用します。"
+  },
+  {
+    category: "自然言語処理",
+    question: "プロンプトエンジニアリングの手法の一つ「Few-shot learning」とは何か。",
+    options: [
+      "モデルを少量のデータで再学習すること",
+      "プロンプトに少数の例示を含めることで、タスクの実行方法をモデルに示すこと",
+      "推論時にモデルのパラメータを一部更新すること",
+      "少数の層のみを学習する手法"
+    ],
+    answer: 1,
+    explanation: "Few-shot learningは、プロンプトに少数の入出力例を含めることで、LLMにタスクの実行方法を示す手法です。例示なしのZero-shot、1つの例示のOne-shot、複数例示のFew-shotがあります。モデルのパラメータ更新は行いません（In-Context Learning）。"
+  },
+  {
+    category: "自然言語処理",
+    question: "RLHF（Reinforcement Learning from Human Feedback）の目的として最も適切なものはどれか。",
+    options: [
+      "モデルの推論速度を向上させる",
+      "人間のフィードバックを用いて、モデルの出力を人間の好みに合わせる",
+      "学習データの量を増やす",
+      "モデルのパラメータ数を削減する"
+    ],
+    answer: 1,
+    explanation: "RLHFは、人間の評価者によるフィードバック（どちらの出力がより良いか等）を報酬信号として、強化学習によりLLMを微調整する手法です。ChatGPTなどのモデルで、有用で安全な出力を生成するために使われています。"
+  },
+
+  // ── カテゴリ 7: 画像認識 ──
+  {
+    category: "画像認識",
+    question: "画像分類の分野で大きなブレイクスルーとなった2012年のモデルはどれか。",
+    options: ["VGGNet", "AlexNet", "ResNet", "GoogLeNet"],
+    answer: 1,
+    explanation: "AlexNet（Alex Krizhevsky et al.）は2012年のImageNet Large Scale Visual Recognition Challenge（ILSVRC）で圧倒的な成績を収め、ディープラーニングの有効性を広く示しました。GPU利用、ReLU、ドロップアウトなどの技術を組み合わせています。"
+  },
+  {
+    category: "画像認識",
+    question: "セマンティックセグメンテーションの説明として最も適切なものはどれか。",
+    options: [
+      "画像から物体を検出しバウンディングボックスで囲むタスク",
+      "画像の各ピクセルにクラスラベルを割り当てるタスク",
+      "画像内の物体を数えるタスク",
+      "画像の類似度を計算するタスク"
+    ],
+    answer: 1,
+    explanation: "セマンティックセグメンテーションは、画像の各ピクセルにクラスラベル（人、車、空、道路など）を割り当てるタスクです。物体検出（バウンディングボックス）やインスタンスセグメンテーション（個体の識別まで行う）とは区別されます。U-NetやDeepLabなどが代表的なモデルです。"
+  },
+  {
+    category: "画像認識",
+    question: "データ拡張（Data Augmentation）の手法に該当しないものはどれか。",
+    options: [
+      "画像の回転・反転",
+      "画像のクロップ（切り抜き）",
+      "正則化パラメータの調整",
+      "色調の変換・ノイズの追加"
+    ],
+    answer: 2,
+    explanation: "データ拡張は、既存の画像に変換を加えて訓練データを増やす手法で、回転・反転・クロップ・色調変換・ノイズ追加・ランダム消去などがあります。正則化パラメータの調整はモデル学習に関する設定であり、データ拡張ではありません。"
+  },
+
+  // ── カテゴリ 8: 生成AI ──
+  {
+    category: "生成AI",
+    question: "拡散モデル（Diffusion Model）の基本的な仕組みとして最も適切なものはどれか。",
+    options: [
+      "GANのように2つのネットワークを敵対的に学習させる",
+      "データにノイズを段階的に加えるプロセスを逆にたどり、ノイズからデータを生成する",
+      "オートエンコーダの潜在空間からサンプリングする",
+      "テキストを直接ピクセルに変換する"
+    ],
+    answer: 1,
+    explanation: "拡散モデルは、元データに段階的にノイズを加えていく拡散過程と、ノイズからデータを段階的に復元する逆拡散過程を学習します。Stable Diffusion、DALL-E 2/3、Midjourneyなどの画像生成AIの基盤技術です。"
+  },
+  {
+    category: "生成AI",
+    question: "RAG（Retrieval-Augmented Generation）の説明として最も適切なものはどれか。",
+    options: [
+      "大規模言語モデルを追加データで再学習する手法",
+      "外部知識ベースから関連情報を検索し、それを踏まえてLLMに回答を生成させる手法",
+      "複数のLLMの出力を統合する手法",
+      "画像から自動的にテキストを生成する手法"
+    ],
+    answer: 1,
+    explanation: "RAG（検索拡張生成）は、ユーザーの質問に対して外部知識ベース（ドキュメント、データベース等）から関連情報を検索し、それをLLMのコンテキストに含めて回答を生成する手法です。ハルシネーションの軽減と、最新情報への対応に有効です。"
+  },
+  {
+    category: "生成AI",
+    question: "ファインチューニング（Fine-tuning）とプロンプトエンジニアリングの違いとして最も適切なものはどれか。",
+    options: [
+      "ファインチューニングは推論時の手法、プロンプトエンジニアリングは学習時の手法",
+      "ファインチューニングはモデルのパラメータを更新するが、プロンプトエンジニアリングは更新しない",
+      "プロンプトエンジニアリングの方が精度が高い",
+      "両者に違いはない"
+    ],
+    answer: 1,
+    explanation: "ファインチューニングは、事前学習済みモデルのパラメータを追加のデータで更新する手法です。一方、プロンプトエンジニアリングはモデルのパラメータを変えず、入力するプロンプト（指示文）を工夫することでモデルの出力を制御する手法です。"
+  },
+  {
+    category: "生成AI",
+    question: "マルチモーダルAIの説明として最も適切なものはどれか。",
+    options: [
+      "複数のGPUで並列計算するAI",
+      "テキスト・画像・音声など複数の種類のデータを統合的に扱えるAI",
+      "複数の言語を処理できるAI",
+      "複数のタスクを同時に実行できるAI"
+    ],
+    answer: 1,
+    explanation: "マルチモーダルAIは、テキスト、画像、音声、動画など複数のモダリティ（データの種類）を統合的に理解・処理できるAIです。GPT-4V、Gemini、Claude（画像理解対応）などがマルチモーダルAIの例です。"
+  },
+
+  // ── カテゴリ 9: 法律・倫理・社会 ──
+  {
+    category: "法律・倫理・社会",
+    question: "AIの学習に使用する著作物について、日本の著作権法第30条の4で規定されている内容として最も適切なものはどれか。",
+    options: [
+      "著作物のAI学習への利用は一切禁止されている",
+      "著作権者の許諾なくAI学習目的での著作物利用が一定条件下で認められている",
+      "商用目的のAI学習でのみ著作物利用が認められている",
+      "政府が許可したAIに限り著作物利用が認められている"
+    ],
+    answer: 1,
+    explanation: "日本の著作権法第30条の4は、情報解析（AI学習含む）のための著作物利用について、著作権者の許諾なく行うことを一定条件下で認めています。ただし、著作権者の利益を不当に害する場合は認められません。この規定は国際的にも注目されています。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "個人情報保護法における「要配慮個人情報」に該当しないものはどれか。",
+    options: ["人種", "病歴", "メールアドレス", "犯罪の経歴"],
+    answer: 2,
+    explanation: "要配慮個人情報とは、不当な差別や偏見が生じないように特に配慮を要する個人情報で、人種、信条、社会的身分、病歴、犯罪の経歴、犯罪被害の事実などが含まれます。メールアドレスは通常の個人情報であり、要配慮個人情報には該当しません。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIにおける「公平性（Fairness）」の課題として最も適切なものはどれか。",
+    options: [
+      "AIの計算速度が遅い問題",
+      "訓練データに含まれるバイアスがAIの判断に反映され、特定の集団に不利益をもたらす問題",
+      "AIの開発コストが高い問題",
+      "AIのインターフェースが使いにくい問題"
+    ],
+    answer: 1,
+    explanation: "AIの公平性の課題は、訓練データに含まれる社会的バイアス（性別、人種、年齢等）がモデルに学習され、特定の集団に対して不公平な判断を行ってしまう問題です。採用AIや融資審査AIなどで実際に問題が報告されており、重要な研究テーマです。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIの説明可能性（Explainability / XAI）が重要視される理由として最も適切なものはどれか。",
+    options: [
+      "AIモデルのパラメータ数を減らすため",
+      "AIの意思決定プロセスを人間が理解・検証できるようにし、信頼性と説明責任を確保するため",
+      "AIの計算速度を向上させるため",
+      "AIのプログラミングを簡単にするため"
+    ],
+    answer: 1,
+    explanation: "XAI（説明可能なAI）は、AIの判断根拠を人間が理解できる形で提示する技術です。特に医療診断、金融、法律など高リスクな意思決定では、判断の根拠を説明できることが信頼性・説明責任の観点から不可欠です。LIME、SHAPなどの手法があります。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "EU AI規制法（AI Act）におけるリスクベースアプローチの分類として正しいものはどれか。",
+    options: [
+      "低リスク・高リスクの2段階",
+      "許容できないリスク・高リスク・限定リスク・最小リスクの4段階",
+      "リスクレベル1〜10の10段階",
+      "産業分野ごとの分類"
+    ],
+    answer: 1,
+    explanation: "EU AI規制法（AI Act、2024年発効）は、AIシステムをリスクに応じて4段階に分類します。許容できないリスク（禁止：社会的スコアリング等）、高リスク（厳格な規制：採用AI等）、限定リスク（透明性義務：チャットボット等）、最小リスク（規制なし）です。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIの開発・利用において「透明性」が求められる理由として最も適切なものはどれか。",
+    options: [
+      "AIのソースコードを全て公開するため",
+      "AIシステムがどのように動作し判断するかを利害関係者が理解できるようにするため",
+      "AIの開発費用を公開するため",
+      "AIの学習データを全て公開するため"
+    ],
+    answer: 1,
+    explanation: "AIにおける透明性は、AIシステムの動作原理、使用されるデータ、判断プロセスなどを利害関係者が理解できるようにすることを指します。これはソースコードの全公開とは異なり、適切な範囲での説明と情報開示を意味します。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "ディープフェイクの説明として最も適切なものはどれか。",
+    options: [
+      "AI技術を使って偽のユーザーアカウントを作成すること",
+      "ディープラーニングを用いて人物の顔や声を精巧に合成・改変する技術",
+      "AIを使ってフェイクニュースを拡散すること",
+      "ディープラーニングの学習を妨害する攻撃手法"
+    ],
+    answer: 1,
+    explanation: "ディープフェイクは、ディープラーニング（特にGAN等の生成モデル）を用いて、人物の顔や声を精巧に合成・改変する技術です。エンタメへの活用がある一方、詐欺や偽情報の拡散に悪用されるリスクがあり、法規制や検出技術の開発が進められています。"
+  },
+
+  // ── カテゴリ 10: AI の社会実装 ──
+  {
+    category: "AIの社会実装",
+    question: "自動運転のレベル3の説明として最も適切なものはどれか。",
+    options: [
+      "ドライバーが全て操作する（運転支援なし）",
+      "特定の条件下でAIが全ての運転操作を行い、必要時にドライバーに操作を委譲する",
+      "全ての条件下でAIが運転し、ドライバーは一切不要",
+      "加速・操舵・制動のうち1つをAIが支援する"
+    ],
+    answer: 1,
+    explanation: "自動運転レベル3（条件付き自動運転）は、特定の条件（高速道路など）下でAIが全ての運転操作を行いますが、システムが対応できない状況ではドライバーに操作を委譲します。レベル4は限定領域での完全自動運転、レベル5は全条件での完全自動運転です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AIプロジェクトにおけるPoC（Proof of Concept）の目的として最も適切なものはどれか。",
+    options: [
+      "最終製品を完成させること",
+      "技術的な実現可能性とビジネス価値を小規模に検証すること",
+      "AIモデルの本番環境へのデプロイ",
+      "AIエンジニアの採用"
+    ],
+    answer: 1,
+    explanation: "PoC（概念実証）は、AIプロジェクトの初期段階で、技術的な実現可能性やビジネス価値を小規模かつ短期間に検証するプロセスです。本番開発前にリスクを把握し、投資判断の根拠とします。PoCの結果を踏まえて本格開発に進むかを判断します。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "MLOpsの説明として最も適切なものはどれか。",
+    options: [
+      "機械学習モデルの理論を研究する学問分野",
+      "機械学習モデルの開発・運用・保守を効率的に行うための実践的手法・プロセス",
+      "機械学習用の新しいプログラミング言語",
+      "機械学習モデルを小型化するための圧縮技術"
+    ],
+    answer: 1,
+    explanation: "MLOps（Machine Learning Operations）は、DevOpsの考え方を機械学習に適用し、モデルの開発、デプロイ、モニタリング、再学習のライフサイクル全体を効率的に管理する実践的手法です。データ管理、実験管理、CI/CD、モデルモニタリングなどを含みます。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "エッジAIの利点として最も適切なものはどれか。",
+    options: [
+      "クラウドより大規模なモデルを実行できる",
+      "低遅延でリアルタイム処理が可能であり、データをデバイス上で処理するためプライバシー保護にも有利",
+      "学習データの収集が容易になる",
+      "インターネット接続が常に必要"
+    ],
+    answer: 1,
+    explanation: "エッジAIは、スマートフォンやIoTデバイスなどの端末（エッジ）上でAI推論を実行する手法です。クラウドへのデータ送信が不要なため低遅延でプライバシー保護に有利です。ただし、デバイスの計算リソースに制約があるため、モデルの軽量化が重要です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AIにおけるデータの品質管理で重要な「GIGO」とは何を意味する原則か。",
+    options: [
+      "Great Input, Great Output — 良い入力が良い出力を生む",
+      "Garbage In, Garbage Out — ゴミを入れればゴミが出る",
+      "Global Intelligence, Global Output — グローバルな知能がグローバルな出力を生む",
+      "Generate Input, Generate Output — 入力を生成し出力を生成する"
+    ],
+    answer: 1,
+    explanation: "GIGO（Garbage In, Garbage Out）は、入力データの品質が低ければ、どれだけ優れたモデルを使っても出力の品質は低くなるという原則です。AIプロジェクトでは、モデルの改善だけでなく、データの品質管理（前処理、クリーニング、ラベルの品質確保）が極めて重要です。"
+  },
+
+  // ── 追加問題: カテゴリ横断 ──
+  {
+    category: "機械学習",
+    question: "L1正則化（Lasso）の特徴として最も適切なものはどれか。",
+    options: [
+      "全てのパラメータを均等に小さくする",
+      "一部のパラメータを完全に0にし、特徴量選択の効果がある",
+      "パラメータの値を増大させる",
+      "学習率を自動調整する"
+    ],
+    answer: 1,
+    explanation: "L1正則化（Lasso回帰）は、損失関数にパラメータの絶対値の和（L1ノルム）のペナルティ項を加えます。これにより、一部のパラメータが完全に0になるスパースなモデルが得られ、暗黙的な特徴量選択として機能します。L2正則化（Ridge）は全パラメータを均等に小さくします。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Seq2Seq（Sequence-to-Sequence）モデルの代表的な応用例はどれか。",
+    options: ["画像分類", "機械翻訳", "物体検出", "異常検知"],
+    answer: 1,
+    explanation: "Seq2Seqモデルは、可変長の入力系列を可変長の出力系列に変換するモデルで、エンコーダとデコーダで構成されます。機械翻訳、文書要約、対話生成などが代表的な応用例です。2014年にSutskeverらが提案しました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "エキスパートシステムの構成要素として正しい組み合わせはどれか。",
+    options: [
+      "知識ベースと推論エンジン",
+      "エンコーダとデコーダ",
+      "ジェネレータとディスクリミネータ",
+      "訓練データとテストデータ"
+    ],
+    answer: 0,
+    explanation: "エキスパートシステムは、専門家の知識をIF-THENルールなどで記述した「知識ベース」と、その知識を用いて推論を行う「推論エンジン」で構成されます。第二次AIブーム（1980年代）で広く使われましたが、知識獲得のボトルネックが課題でした。"
+  },
+  {
+    category: "数理・統計",
+    question: "過適合を検出するために有効な方法はどれか。",
+    options: [
+      "訓練データでの損失だけを監視する",
+      "訓練データと検証データの損失の推移を比較する",
+      "テストデータで繰り返し学習する",
+      "バッチサイズを大きくする"
+    ],
+    answer: 1,
+    explanation: "過適合を検出するには、訓練データと検証データの損失の推移を比較します。訓練損失は下がり続けるのに検証損失が上昇し始めたら、過適合が起きていると判断できます。この時点で学習を停止する手法がEarly Stopping（早期終了）です。"
+  },
+  {
+    category: "生成AI",
+    question: "LoRA（Low-Rank Adaptation）の特徴として最も適切なものはどれか。",
+    options: [
+      "モデルの全パラメータを更新する手法",
+      "少数のパラメータ（低ランク行列）のみを追加・学習し、効率的にファインチューニングする手法",
+      "モデルを複数のGPUに分散させる手法",
+      "推論時のバッチサイズを最適化する手法"
+    ],
+    answer: 1,
+    explanation: "LoRA（Low-Rank Adaptation）は、元のモデルの重み行列に低ランク行列のペアを追加し、その追加パラメータのみを学習する効率的なファインチューニング手法です。全パラメータ更新に比べて必要なメモリと計算コストが大幅に削減されます。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIの「アカウンタビリティ（説明責任）」の意味として最も適切なものはどれか。",
+    options: [
+      "AIの計算過程を数式で示すこと",
+      "AIの開発・運用に関して、関係者がその判断や結果に対する責任を負い、説明できること",
+      "AIのソースコードをオープンソースにすること",
+      "AIのコストを明示すること"
+    ],
+    answer: 1,
+    explanation: "AIのアカウンタビリティとは、AIシステムの開発者・運用者が、AIの判断プロセスや結果について、利害関係者に対して適切に説明し、責任を負うことを意味します。特に重大な影響をもたらす判断において不可欠な概念です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AIプロジェクトが失敗する主な原因として最も多いとされるものはどれか。",
+    options: [
+      "AIアルゴリズムの性能不足",
+      "GPUなど計算リソースの不足",
+      "データの品質・量の問題、および明確なビジネス課題の欠如",
+      "優秀なAIエンジニアの不足"
+    ],
+    answer: 2,
+    explanation: "AIプロジェクトの失敗原因として最も多いのは、十分な品質・量のデータが確保できないこと、そして解くべきビジネス課題が明確でないことです。技術的な問題以前に、データ戦略とビジネス課題の定義が成功の鍵を握ります。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "ミニバッチ学習のバッチサイズを大きくしすぎた場合に起こりうる問題はどれか。",
+    options: [
+      "学習が不安定になりやすい",
+      "メモリ使用量の増加と、局所最適解に陥りやすくなること",
+      "過学習が起きやすくなる",
+      "勾配消失問題が悪化する"
+    ],
+    answer: 1,
+    explanation: "バッチサイズが大きすぎると、GPUメモリを大量に消費し、また勾配のノイズが減るため局所最適解（鋭い最小値）に陥りやすくなります。適度なバッチサイズのノイズは、鋭い最小値を避けて平坦な最小値（汎化性能が高い）に収束する助けとなります。"
+  },
+  {
+    category: "自然言語処理",
+    question: "Tokenizationの説明として最も適切なものはどれか。",
+    options: [
+      "テキストの感情を分析する処理",
+      "テキストを意味のある小さな単位（トークン）に分割する処理",
+      "テキストを別の言語に翻訳する処理",
+      "テキストから固有名詞を抽出する処理"
+    ],
+    answer: 1,
+    explanation: "Tokenization（トークン化）は、テキストをモデルが処理できる小さな単位（トークン）に分割する前処理です。単語単位、サブワード単位（BPE、WordPiece等）、文字単位などの方法があります。LLMではサブワード分割が広く使われています。"
+  },
+  {
+    category: "画像認識",
+    question: "Vision Transformer（ViT）の特徴として最も適切なものはどれか。",
+    options: [
+      "CNNの畳み込みを大幅に強化したモデル",
+      "画像をパッチに分割し、Transformerのアーキテクチャを画像認識に適用したモデル",
+      "GANを使って画像を生成するモデル",
+      "物体検出に特化したモデル"
+    ],
+    answer: 1,
+    explanation: "Vision Transformer（ViT, 2020年）は、画像を固定サイズのパッチに分割し、各パッチを系列データとしてTransformerに入力するモデルです。CNNを使わずにSelf-Attentionのみで画像認識を行い、大規模データで学習すると高い性能を示します。"
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  追加問題 (51〜250+)
+  // ══════════════════════════════════════════════════════════
+
+  // ── AIの基礎知識（追加） ──
+  {
+    category: "AIの基礎知識",
+    question: "「弱いAI（Narrow AI / 特化型AI）」の具体例として最も適切なものはどれか。",
+    options: ["人間のように自由に会話し、あらゆる問題を解決できるAI", "将棋の対局に特化して強い手を指すAI", "意識を持ち自律的に行動するロボット", "全ての学問分野の知識を統合して推論するAI"],
+    answer: 1,
+    explanation: "弱いAI（Narrow AI）は特定のタスクに特化したAIです。将棋AI、画像認識AI、翻訳AIなど、現在実用化されているAIの大半が弱いAIに該当します。汎用的な知的能力を持つ「強いAI（AGI）」とは区別されます。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "ディープラーニングの発展に大きく寄与した人物として、2018年にチューリング賞を受賞した3人に含まれないのは誰か。",
+    options: ["ジェフリー・ヒントン", "ヤン・ルカン", "ヨシュア・ベンジオ", "アンドリュー・ング"],
+    answer: 3,
+    explanation: "2018年のチューリング賞は、ディープラーニングの発展に多大な貢献をしたジェフリー・ヒントン、ヤン・ルカン、ヨシュア・ベンジオの3名に授与されました。アンドリュー・ングもAI分野の著名な研究者ですが、チューリング賞の受賞者ではありません。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "ELIZA（イライザ）の説明として最も適切なものはどれか。",
+    options: [
+      "世界初のエキスパートシステム",
+      "簡単なパターンマッチングで対話を模倣する初期の自然言語処理プログラム",
+      "初めてチューリングテストに合格したAI",
+      "初めて将棋のプロ棋士に勝利したAI"
+    ],
+    answer: 1,
+    explanation: "ELIZA（1966年、ジョセフ・ワイゼンバウム開発）は、パターンマッチングと置換ルールでカウンセラーのような対話を模倣するプログラムです。簡単な仕組みにもかかわらず、人々が感情移入する現象（ELIZA効果）が確認されました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "第三次AIブームの主な牽引力となった技術は何か。",
+    options: ["エキスパートシステム", "探索アルゴリズム", "ディープラーニング（深層学習）", "遺伝的アルゴリズム"],
+    answer: 2,
+    explanation: "第三次AIブーム（2010年代〜）は、ディープラーニング（深層学習）の飛躍的な進歩が主な牽引力です。2012年のAlexNetによるILSVRC優勝を契機に、画像認識・自然言語処理・音声認識など多分野でブレイクスルーが起こりました。ビッグデータとGPUの発展も重要な要因です。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "探索アルゴリズムの一つである「幅優先探索」の特徴として最も適切なものはどれか。",
+    options: [
+      "深い方向を優先的に探索し、行き止まりに達したら戻る",
+      "浅い階層から順に全ての状態を探索し、最短経路を保証する",
+      "ランダムに探索方向を選ぶ",
+      "ヒューリスティック関数を使って効率的に探索する"
+    ],
+    answer: 1,
+    explanation: "幅優先探索（BFS: Breadth-First Search）は、開始ノードに近い階層から順に全ての状態を探索するアルゴリズムです。最短経路を保証しますが、探索空間が大きいとメモリと計算時間が膨大になります。対照的に深さ優先探索（DFS）は深い方向を優先します。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "AlphaGoが2016年にイ・セドル九段に勝利したことで証明されたこととして最も適切なものはどれか。",
+    options: [
+      "AIが全てのボードゲームで人間を超えたこと",
+      "ディープラーニングと強化学習の組み合わせにより、AIが複雑な戦略ゲームでもプロに勝てること",
+      "AIが汎用知能（AGI）を達成したこと",
+      "探索アルゴリズムだけでプロ棋士に勝てること"
+    ],
+    answer: 1,
+    explanation: "AlphaGo（DeepMind）がイ・セドル九段に勝利したことで、ディープラーニング（CNN）とモンテカルロ木探索、強化学習を組み合わせたAIが、囲碁のような膨大な局面数を持つ複雑な戦略ゲームでもプロレベルに到達できることが示されました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "モラベックのパラドックスの説明として最も適切なものはどれか。",
+    options: [
+      "AIは論理的推論が得意だが、人間にとって簡単な感覚運動スキルが苦手であるという逆説",
+      "AIが賢くなるほど消費電力が減るという逆説",
+      "AIの精度が上がるほど説明が難しくなるという逆説",
+      "AIが大量のデータを持つほど判断が遅くなるという逆説"
+    ],
+    answer: 0,
+    explanation: "モラベックのパラドックスとは、「高度な推論よりも、感覚運動スキル（歩く、物を掴むなど）の方がAIにとって遥かに難しい」という逆説です。人間が無意識にできる知覚・運動は進化の長い歴史で獲得されたもので、コンピュータで再現することは極めて困難です。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "知識グラフ（Knowledge Graph）の説明として最も適切なものはどれか。",
+    options: [
+      "ニューラルネットワークのアーキテクチャ図",
+      "実体（エンティティ）と関係（リレーション）をグラフ構造で表現した知識ベース",
+      "データの折れ線グラフや棒グラフ",
+      "プログラムの呼び出し関係を示す図"
+    ],
+    answer: 1,
+    explanation: "知識グラフは、実体（人、場所、概念など）をノード、それらの関係をエッジとしてグラフ構造で表現する知識ベースです。Googleの検索エンジンやWikidata、DBpediaなどが代表的な例です。質問応答システムや推薦システムなどで活用されています。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "「特徴量エンジニアリング」とは何か。最も適切なものを選べ。",
+    options: [
+      "ディープラーニングのモデル構造を設計すること",
+      "データから学習に有効な特徴を人手で設計・選択・変換すること",
+      "学習率を自動的に調整すること",
+      "テストデータを設計すること"
+    ],
+    answer: 1,
+    explanation: "特徴量エンジニアリングは、生のデータから機械学習モデルにとって有効な特徴量（Feature）を人手で設計・選択・変換する作業です。従来の機械学習では精度を大きく左右する重要な工程でしたが、ディープラーニングでは特徴の自動抽出が可能になり、その重要性は相対的に低下しました。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "「汎用人工知能（AGI）」と「特化型AI（ANI）」の関係として最も適切なものはどれか。",
+    options: [
+      "AGIは既に実現されており、ANIはその簡易版である",
+      "ANIは特定タスクに限定されたAIで、AGIは人間と同等の汎用的知能を目指す未実現のAI",
+      "AGIとANIは同義語である",
+      "ANIはAGIよりも高度なAIである"
+    ],
+    answer: 1,
+    explanation: "ANI（Artificial Narrow Intelligence）は特定のタスクに特化したAIで、現在実用化されている全てのAIがこれに該当します。AGI（Artificial General Intelligence）は人間のように多様な知的タスクを遂行できる汎用AIで、2026年現在まだ実現されていません。"
+  },
+
+  // ── 機械学習（追加） ──
+  {
+    category: "機械学習",
+    question: "ロジスティック回帰の出力として正しいものはどれか。",
+    options: ["連続値（実数）", "0から1の確率値", "整数のクラスラベル", "文字列"],
+    answer: 1,
+    explanation: "ロジスティック回帰は、名前に「回帰」とつきますが分類に使われるモデルです。シグモイド関数を通じて0から1の確率値を出力し、閾値（通常0.5）で2クラスに分類します。「回帰」は歴史的な名称であり、タスクとしては分類です。"
+  },
+  {
+    category: "機械学習",
+    question: "アンサンブル学習の手法である「ブースティング」の特徴として最も適切なものはどれか。",
+    options: [
+      "複数のモデルを独立に学習させて結果を統合する",
+      "前のモデルが間違えたデータに重点を置いて次のモデルを順次学習させる",
+      "一つのモデルのパラメータをランダムに変更する",
+      "モデルの深さを増やすことで精度を上げる"
+    ],
+    answer: 1,
+    explanation: "ブースティングは、前のモデルの誤りを補正するように次のモデルを逐次的に学習させるアンサンブル手法です。代表的なアルゴリズムにAdaBoost、Gradient Boosting、XGBoost、LightGBMがあります。バギング（ランダムフォレスト等）は並列に独立学習させる点で異なります。"
+  },
+  {
+    category: "機械学習",
+    question: "k近傍法（k-NN）の説明として最も適切なものはどれか。",
+    options: [
+      "データをk個のクラスタに分割する手法",
+      "予測時に学習データからk個の最も近い点を探し、多数決で分類する手法",
+      "k個の決定木を組み合わせる手法",
+      "k回の交差検証を行う手法"
+    ],
+    answer: 1,
+    explanation: "k近傍法（k-NN: k-Nearest Neighbors）は、新しいデータ点に対して、学習データの中から最も距離の近いk個の点を見つけ、その多数決（分類）や平均（回帰）で予測を行う手法です。学習フェーズが不要（遅延学習 / Lazy Learning）な点が特徴です。"
+  },
+  {
+    category: "機械学習",
+    question: "特徴量のスケーリング（標準化・正規化）が重要な理由として最も適切なものはどれか。",
+    options: [
+      "データのサンプル数を増やすため",
+      "特徴量間のスケールの違いがモデルの学習に悪影響を与えるのを防ぐため",
+      "カテゴリカル変数を数値に変換するため",
+      "欠損値を補完するため"
+    ],
+    answer: 1,
+    explanation: "特徴量間のスケールが大きく異なると（例：年齢0-100 vs 年収100万-1000万）、距離ベースのアルゴリズム（k-NN、SVM等）や勾配降下法ベースのモデルの学習に悪影響を与えます。標準化（平均0、分散1）やMin-Maxスケーリング（0-1）で統一することが重要です。"
+  },
+  {
+    category: "機械学習",
+    question: "混同行列（Confusion Matrix）における「偽陽性（False Positive）」の説明として最も適切なものはどれか。",
+    options: [
+      "陽性を正しく陽性と予測した場合",
+      "実際は陰性だが、陽性と誤って予測した場合",
+      "陰性を正しく陰性と予測した場合",
+      "実際は陽性だが、陰性と誤って予測した場合"
+    ],
+    answer: 1,
+    explanation: "偽陽性（False Positive / FP、第一種過誤）は、実際は陰性であるにもかかわらず、モデルが陽性と誤って予測したケースです。例えば、健康な人を病気と判定することです。偽陰性（False Negative / FN）は逆に、病気の人を健康と判定するケースです。"
+  },
+  {
+    category: "機械学習",
+    question: "F1スコアの説明として最も適切なものはどれか。",
+    options: [
+      "精度（Accuracy）の別名",
+      "適合率（Precision）と再現率（Recall）の調和平均",
+      "真陽性率と偽陽性率の比",
+      "訓練データと検証データの精度の差"
+    ],
+    answer: 1,
+    explanation: "F1スコアは、適合率（Precision）と再現率（Recall）の調和平均で、F1 = 2 × (Precision × Recall) / (Precision + Recall) で計算されます。両方のバランスを考慮した指標で、不均衡データの評価に有用です。"
+  },
+  {
+    category: "機械学習",
+    question: "ROC曲線のAUC（Area Under the Curve）が1.0に近い場合、何を意味するか。",
+    options: [
+      "モデルの学習が過学習している",
+      "モデルの分類性能が非常に高い",
+      "モデルの学習に時間がかかりすぎている",
+      "データが不均衡である"
+    ],
+    answer: 1,
+    explanation: "ROC曲線は真陽性率（TPR）と偽陽性率（FPR）の関係をプロットしたもので、AUCはその曲線の下の面積です。AUCが1.0に近いほど分類性能が高く、0.5はランダム予測と同等の性能を意味します。"
+  },
+  {
+    category: "機械学習",
+    question: "ハイパーパラメータの説明として最も適切なものはどれか。",
+    options: [
+      "学習によって自動的に最適化されるモデル内部のパラメータ",
+      "学習の前に人間が設定する、学習プロセスを制御するパラメータ",
+      "データの前処理で使用するパラメータ",
+      "テストデータの評価に使用するパラメータ"
+    ],
+    answer: 1,
+    explanation: "ハイパーパラメータは、学習率、バッチサイズ、エポック数、正則化の強さ、決定木の深さなど、学習開始前に人間が設定するパラメータです。グリッドサーチやベイズ最適化などで最適なハイパーパラメータを探索します。モデルの重み（パラメータ）とは区別されます。"
+  },
+  {
+    category: "機械学習",
+    question: "ナイーブベイズ分類器の「ナイーブ（素朴）」が指す仮定は何か。",
+    options: [
+      "データの分布が正規分布であること",
+      "各特徴量が互いに独立であること",
+      "全てのクラスが同じ確率で出現すること",
+      "特徴量の数が少ないこと"
+    ],
+    answer: 1,
+    explanation: "ナイーブベイズ分類器は、各特徴量が互いに条件付き独立であるという「素朴な（naive）」仮定を置いています。現実にはこの仮定は厳密には成り立ちませんが、テキスト分類やスパムフィルタリングなどで実用的に高い性能を示すことが知られています。"
+  },
+  {
+    category: "機械学習",
+    question: "半教師あり学習（Semi-Supervised Learning）の説明として最も適切なものはどれか。",
+    options: [
+      "報酬信号で学習する手法",
+      "少量のラベル付きデータと大量のラベルなしデータを組み合わせて学習する手法",
+      "教師あり学習と強化学習を交互に行う手法",
+      "半分のデータで学習し、残り半分で評価する手法"
+    ],
+    answer: 1,
+    explanation: "半教師あり学習は、少量のラベル付きデータと大量のラベルなしデータを併用する学習手法です。ラベル付きデータの作成にはコストがかかるため、ラベルなしデータの構造的な情報を活用して効率的に学習することを目指します。"
+  },
+  {
+    category: "機械学習",
+    question: "XGBoostの説明として最も適切なものはどれか。",
+    options: [
+      "ディープラーニングの一種",
+      "勾配ブースティングを高速化・最適化した決定木ベースのアンサンブル手法",
+      "サポートベクターマシンの拡張版",
+      "ランダムフォレストの別名"
+    ],
+    answer: 1,
+    explanation: "XGBoost（eXtreme Gradient Boosting）は、勾配ブースティング決定木を高速化・正則化した手法で、機械学習コンペティション（Kaggle等）で非常に高い成績を収めています。並列計算、正則化、欠損値の自動処理などの機能を持ちます。"
+  },
+  {
+    category: "機械学習",
+    question: "教師なし学習のタスクに該当しないものはどれか。",
+    options: ["クラスタリング", "次元削減", "異常検知", "回帰"],
+    answer: 3,
+    explanation: "回帰は教師あり学習のタスクであり、入力と正解（連続値）のペアから学習します。クラスタリング（グループ分け）、次元削減（PCA等）、異常検知はラベルなしデータで行う教師なし学習のタスクです。"
+  },
+  {
+    category: "機械学習",
+    question: "ホールドアウト法の問題点として最も適切なものはどれか。",
+    options: [
+      "計算コストが高い",
+      "データの分割方法によって評価結果が大きく変動する",
+      "訓練データを全く使わない",
+      "テストデータが存在しない"
+    ],
+    answer: 1,
+    explanation: "ホールドアウト法は、データを訓練セットとテストセットに一度だけ分割して評価する方法です。分割の仕方によって評価結果が大きく変動するため、特にデータ量が少ない場合には信頼性が低くなります。この問題を緩和するために交差検証が使われます。"
+  },
+  {
+    category: "機械学習",
+    question: "マルコフ決定過程（MDP）を構成する要素に含まれないものはどれか。",
+    options: ["状態（State）", "行動（Action）", "報酬（Reward）", "教師データ（Label）"],
+    answer: 3,
+    explanation: "マルコフ決定過程（MDP）は強化学習の基礎となる数学的フレームワークで、状態（S）、行動（A）、遷移確率（P）、報酬（R）で構成されます。教師データ（ラベル）は教師あり学習の概念であり、MDPには含まれません。"
+  },
+
+  // ── ディープラーニング基礎（追加） ──
+  {
+    category: "ディープラーニング基礎",
+    question: "Sigmoid関数の出力範囲として正しいものはどれか。",
+    options: ["0から1", "-1から1", "0から無限大", "-無限大から無限大"],
+    answer: 0,
+    explanation: "Sigmoid関数 σ(x) = 1/(1+e^(-x)) の出力は0から1の範囲です。確率として解釈できるため、二値分類の出力層でよく使われます。ただし、勾配消失問題を引き起こしやすいため、隠れ層ではReLUが主に使われます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "ソフトマックス関数（Softmax）が使われる典型的な場面はどれか。",
+    options: [
+      "回帰問題の出力層",
+      "多クラス分類の出力層",
+      "隠れ層の活性化関数",
+      "損失関数"
+    ],
+    answer: 1,
+    explanation: "ソフトマックス関数は、多クラス分類の出力層で使用され、各クラスの出力値を0〜1の確率に変換し、合計が1になるようにします。これにより、各クラスに属する確率として解釈できるようになります。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "エポック（Epoch）の説明として最も適切なものはどれか。",
+    options: [
+      "1つのミニバッチで学習を行うこと",
+      "全訓練データを1回通して学習すること",
+      "モデルのパラメータを1回更新すること",
+      "検証を1回行うこと"
+    ],
+    answer: 1,
+    explanation: "1エポックとは、全ての訓練データをモデルに1回通して学習を行うことを指します。通常、複数エポック（数十〜数百回）繰り返して学習します。1エポック内でミニバッチに分割して学習を行うため、1エポック内でパラメータは複数回更新されます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "重みの初期化が重要な理由として最も適切なものはどれか。",
+    options: [
+      "メモリ使用量を削減するため",
+      "不適切な初期化は勾配消失・爆発を引き起こし、学習が進まなくなるため",
+      "計算速度を向上させるため",
+      "テストデータの精度を直接向上させるため"
+    ],
+    answer: 1,
+    explanation: "重みの初期値が大きすぎると勾配爆発、小さすぎると勾配消失が起きやすくなります。Xavier初期化（Sigmoid/tanh向け）やHe初期化（ReLU向け）など、活性化関数に合わせた適切な初期化手法が提案されています。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "確率的勾配降下法（SGD）とミニバッチ勾配降下法の違いの説明として最も適切なものはどれか。",
+    options: [
+      "SGDは全データを使い、ミニバッチは一部のデータを使う",
+      "SGDは1サンプルずつ、ミニバッチは小さなバッチ単位で勾配を計算してパラメータを更新する",
+      "両者に違いはない",
+      "ミニバッチの方が常に精度が低い"
+    ],
+    answer: 1,
+    explanation: "厳密にはSGDは1サンプルずつ勾配を計算・更新し、ミニバッチ勾配降下法は小さなバッチ（例：32、64サンプル）単位で行います。ただし、実務では両者をまとめて「SGD」と呼ぶことも多いです。バッチ勾配降下法は全データを使います。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "早期終了（Early Stopping）の説明として最も適切なものはどれか。",
+    options: [
+      "学習が始まってすぐに学習を打ち切ること",
+      "検証データの性能が悪化し始めた時点で学習を終了して過学習を防ぐ手法",
+      "学習率が0になった時点で学習を終了すること",
+      "損失関数が0になった時点で学習を終了すること"
+    ],
+    answer: 1,
+    explanation: "早期終了（Early Stopping）は、訓練中に検証データでの性能を監視し、検証誤差が上昇し始めた（過学習が始まった）時点で学習を打ち切る正則化手法です。モデルが最も汎化性能が高い状態で学習を停止できます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "勾配爆発問題の対策として有効な手法はどれか。",
+    options: [
+      "学習率を大きくする",
+      "勾配クリッピング（Gradient Clipping）",
+      "活性化関数をSigmoidにする",
+      "バッチサイズを小さくする"
+    ],
+    answer: 1,
+    explanation: "勾配クリッピングは、勾配のノルム（大きさ）が閾値を超えた場合に閾値以下に縮小する手法です。これにより勾配爆発を防ぎ、学習を安定させます。特にRNNの学習で有効です。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "Leaky ReLUがReLUと異なる点として最も適切なものはどれか。",
+    options: [
+      "出力が常に正の値",
+      "入力が負の場合にも小さな勾配（例：0.01x）を持つ",
+      "出力範囲が-1から1",
+      "計算コストがReLUよりも大幅に高い"
+    ],
+    answer: 1,
+    explanation: "Leaky ReLUは、入力が負の場合にReLUのように0を出力するのではなく、小さな傾き（例：0.01）をかけた値を出力します。f(x) = max(αx, x)（αは小さな正の定数）。これにより、負の入力域での勾配が完全に0になるDying ReLU問題を回避できます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "学習率スケジューリングの目的として最も適切なものはどれか。",
+    options: [
+      "データの量を段階的に増やすこと",
+      "学習の進行に応じて学習率を調整し、効率的かつ安定した収束を実現すること",
+      "モデルの層数を段階的に増やすこと",
+      "バッチサイズを段階的に変更すること"
+    ],
+    answer: 1,
+    explanation: "学習率スケジューリングは、学習の進行に合わせて学習率を動的に変化させる手法です。初期は大きめの学習率で素早く学習し、後半は小さくして細かく調整する（ステップ減衰、コサインアニーリング等）ことで、効率的な収束を実現します。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "ニューラルネットワークの「層」を深くすることの利点として最も適切なものはどれか。",
+    options: [
+      "常に計算速度が向上する",
+      "より複雑で抽象的な特徴を階層的に学習できる",
+      "過学習が起きにくくなる",
+      "学習データが少なくても高い精度が出る"
+    ],
+    answer: 1,
+    explanation: "ネットワークを深くすることで、低レベルの特徴（エッジ、テクスチャ）から高レベルの特徴（物体の部品、物体全体）まで、階層的に複雑な表現を学習できます。ただし、勾配消失問題やメモリ使用量の増加といった課題も伴います。"
+  },
+
+  // ── ディープラーニングの手法（追加） ──
+  {
+    category: "ディープラーニングの手法",
+    question: "GRU（Gated Recurrent Unit）とLSTMの関係として最も適切なものはどれか。",
+    options: [
+      "GRUはLSTMとは全く異なるアーキテクチャ",
+      "GRUはLSTMを簡略化したモデルで、ゲートの数が少なく計算が軽い",
+      "GRUはLSTMよりも常に精度が高い",
+      "GRUは畳み込みベースのモデル"
+    ],
+    answer: 1,
+    explanation: "GRUはLSTMの簡略版で、リセットゲートと更新ゲートの2つのゲート（LSTMは3つ）を持ちます。セル状態がなく、パラメータ数が少ないため計算が軽量です。性能はタスクによりLSTMと同等かそれ以上の場合もあります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "U-Netの特徴として最も適切なものはどれか。",
+    options: [
+      "画像分類に特化したモデル",
+      "エンコーダ・デコーダ構造とスキップ接続を持つセグメンテーション用モデル",
+      "テキスト生成に特化したモデル",
+      "強化学習用のモデル"
+    ],
+    answer: 1,
+    explanation: "U-Net（2015年）は、対称的なエンコーダ・デコーダ構造とスキップ接続（エンコーダの特徴マップをデコーダに直接連結）を持つセグメンテーション用モデルです。少ない学習データでも高精度な医用画像セグメンテーションが可能で、多分野に応用されています。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "YOLOの特徴として最も適切なものはどれか。",
+    options: [
+      "画像分類に特化したモデル",
+      "画像全体を一度に処理してリアルタイムの物体検出を実現するモデル",
+      "テキストから画像を生成するモデル",
+      "音声認識に特化したモデル"
+    ],
+    answer: 1,
+    explanation: "YOLO（You Only Look Once）は、画像全体を一度のパスで処理し、バウンディングボックスとクラス確率を同時に予測する物体検出モデルです。従来の二段階手法（R-CNN系）と比べて高速で、リアルタイム物体検出を実現しました。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Transformerにおいて位置情報を与えるために使われる手法はどれか。",
+    options: [
+      "畳み込み層",
+      "位置エンコーディング（Positional Encoding）",
+      "プーリング層",
+      "バッチ正規化"
+    ],
+    answer: 1,
+    explanation: "Transformerは再帰構造を持たないため、系列の順序情報を別途与える必要があります。位置エンコーディングは、各位置にサイン・コサイン関数ベースのベクトルを加算することで、トークンの位置情報をモデルに伝えます。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Multi-Head Attentionの利点として最も適切なものはどれか。",
+    options: [
+      "計算量を削減できる",
+      "異なる表現部分空間での注意パターンを同時に学習でき、多様な関係性を捉えられる",
+      "単一のAttentionよりも常にパラメータ数が少ない",
+      "GPUを使わずに計算できる"
+    ],
+    answer: 1,
+    explanation: "Multi-Head Attentionは、Attentionを複数のヘッドに分割し、各ヘッドが異なる表現部分空間で独立にAttentionを計算します。これにより、構文的関係や意味的関係など、多様な関係性を同時に捉えることが可能になります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "敵対的サンプル（Adversarial Example）の説明として最も適切なものはどれか。",
+    options: [
+      "GANの訓練に使うサンプルデータ",
+      "人間には知覚できない微小な摂動を加えることで、AIモデルを誤判断させる入力データ",
+      "学習データに含まれるノイズ",
+      "テストデータの中で最も分類が難しいサンプル"
+    ],
+    answer: 1,
+    explanation: "敵対的サンプルは、入力データに人間には知覚できないほどの微小な摂動を意図的に加えることで、高精度なモデルでも誤った判断をさせることができる入力です。AIの安全性やロバスト性に関わる重要な研究テーマです。FGSM、PGDなどの攻撃手法があります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "知識蒸留（Knowledge Distillation）の説明として最も適切なものはどれか。",
+    options: [
+      "大規模なデータセットを小さくする手法",
+      "大きなモデル（教師モデル）の知識を小さなモデル（生徒モデル）に転移させる手法",
+      "モデルから不要な知識を削除する手法",
+      "複数のモデルを融合させる手法"
+    ],
+    answer: 1,
+    explanation: "知識蒸留は、学習済みの大きなモデル（教師モデル / Teacher）の出力（ソフトラベル）を用いて、小さなモデル（生徒モデル / Student）を学習させる手法です。モデルの圧縮やエッジデバイスへの展開に有用です。Hintonらが2015年に提案しました。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Encoder-Decoderアーキテクチャの説明として最も適切なものはどれか。",
+    options: [
+      "入力を圧縮するエンコーダと、それを復元するデコーダで構成されるモデル",
+      "2つの独立したモデルを並列に動作させる構造",
+      "エンコーダとデコーダが同じパラメータを共有する構造",
+      "教師あり学習専用の構造"
+    ],
+    answer: 0,
+    explanation: "Encoder-Decoderは、エンコーダが入力を内部表現（潜在表現）に変換し、デコーダがそこから目的の出力を生成する構造です。機械翻訳、画像キャプション生成、セグメンテーションなど幅広いタスクで使用されています。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "自己教師あり学習（Self-Supervised Learning）の説明として最も適切なものはどれか。",
+    options: [
+      "人間がラベルを付けたデータで学習する手法",
+      "データ自体から自動的に学習課題（疑似ラベル）を生成して事前学習する手法",
+      "モデルが自分自身のパラメータを評価する手法",
+      "強化学習の一種"
+    ],
+    answer: 1,
+    explanation: "自己教師あり学習は、ラベルなしデータから自動的に学習課題を作り出す手法です。例えば、画像の一部をマスクして復元させたり（MAE）、テキストの一部を隠して予測させたり（BERT）します。大規模な事前学習で強力な表現を獲得でき、後続のタスクに転移できます。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "対照学習（Contrastive Learning）の基本的なアイデアとして最も適切なものはどれか。",
+    options: [
+      "同じデータのペアは近く、異なるデータのペアは遠くなるように表現を学習する",
+      "2つのモデルを競争させて学習する",
+      "正解ラベルとモデル出力を対比させて誤差を計算する",
+      "入力データとその逆（反転データ）を対比させる"
+    ],
+    answer: 0,
+    explanation: "対照学習は、同じデータの異なるビュー（Augmentation）を正のペア、異なるデータを負のペアとし、正のペアは潜在空間で近く、負のペアは遠くなるように表現を学習する自己教師あり学習の手法です。SimCLR、MoCoなどが代表的です。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "モデルの量子化（Quantization）の目的として最も適切なものはどれか。",
+    options: [
+      "モデルの精度を向上させる",
+      "重みや活性化の数値精度を下げてモデルを軽量化し、推論を高速化する",
+      "モデルの学習速度を向上させる",
+      "モデルの層数を増やす"
+    ],
+    answer: 1,
+    explanation: "量子化は、モデルの重みや活性化値を32ビット浮動小数点から8ビット整数などの低精度に変換し、モデルサイズを削減して推論を高速化する技術です。精度の低下を最小限に抑えつつ、エッジデバイスでの実行を可能にします。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "1x1畳み込み（Pointwise Convolution）の主な役割はどれか。",
+    options: [
+      "空間的な特徴を抽出する",
+      "チャネル方向の情報を統合し、チャネル数を変更する",
+      "画像のサイズを変更する",
+      "プーリングの代替"
+    ],
+    answer: 1,
+    explanation: "1x1畳み込みは、空間的なサイズは変えずにチャネル方向の線形結合を行います。チャネル数の変更（次元削減/増加）やチャネル間の情報統合に使われ、GoogLeNet（Inception）やMobileNetなどで重要な役割を果たしています。"
+  },
+
+  // ── 数理・統計（追加） ──
+  {
+    category: "数理・統計",
+    question: "確率変数Xの期待値E[X]の直感的な意味として最も適切なものはどれか。",
+    options: [
+      "Xが取る最も頻度の高い値",
+      "Xが取る値の重み付き平均（長期的な平均値）",
+      "Xが取る値の中央値",
+      "Xが取る値の最大値"
+    ],
+    answer: 1,
+    explanation: "期待値E[X]は、確率変数Xが取る各値を、その確率で重み付けした平均です。試行を無限に繰り返したときの平均値に収束します（大数の法則）。離散確率変数ではE[X] = Σ x·P(X=x)、連続確率変数ではE[X] = ∫ x·f(x)dx で計算されます。"
+  },
+  {
+    category: "数理・統計",
+    question: "共分散の値が正の場合、2つの変数の関係として最も適切なものはどれか。",
+    options: [
+      "一方が増加すると他方も増加する傾向がある",
+      "一方が増加すると他方が減少する傾向がある",
+      "2つの変数に関係がない",
+      "2つの変数が同一の値を取る"
+    ],
+    answer: 0,
+    explanation: "共分散が正の場合、2つの変数は正の相関があり、一方が増加すると他方も増加する傾向があります。負の場合は逆の関係、0に近い場合は線形な関係がないことを意味します。相関係数は共分散を標準偏差で正規化したものです。"
+  },
+  {
+    category: "数理・統計",
+    question: "KLダイバージェンス（Kullback-Leibler divergence）の特徴として正しいものはどれか。",
+    options: [
+      "2つの確率分布の対称的な距離指標",
+      "2つの確率分布の非対称的な差異の指標で、常に0以上",
+      "確率分布のエントロピーの逆数",
+      "2つの確率分布の共分散"
+    ],
+    answer: 1,
+    explanation: "KLダイバージェンスは、ある確率分布Pを基準として、別の分布Qとの差異を測る指標です。常に0以上で、P=Qのとき0になります。ただし、KL(P||Q) ≠ KL(Q||P) であり非対称的なため、厳密な距離（距離の公理を満たさない）ではありません。VAEの損失関数などで使われます。"
+  },
+  {
+    category: "数理・統計",
+    question: "中心極限定理の説明として最も適切なものはどれか。",
+    options: [
+      "サンプルサイズが大きくなると、データの分布が均一になる",
+      "母集団の分布に関わらず、標本平均の分布はサンプルサイズが大きくなると正規分布に近づく",
+      "データの中心値（中央値）が常に平均値と等しくなる",
+      "正規分布の中心が常に0になる"
+    ],
+    answer: 1,
+    explanation: "中心極限定理は、母集団がどのような分布であっても、十分に大きなサンプルサイズの標本平均は近似的に正規分布に従うという定理です。統計的推論の多くの手法の理論的基盤となっており、信頼区間や仮説検定の根拠となります。"
+  },
+  {
+    category: "数理・統計",
+    question: "エントロピー（情報エントロピー）が最大になるのはどのような分布の場合か。",
+    options: [
+      "1つの事象が確実に起こる場合",
+      "全ての事象が等確率で起こる場合（一様分布）",
+      "1つの事象が90%の確率で起こる場合",
+      "事象の数が最も少ない場合"
+    ],
+    answer: 1,
+    explanation: "情報エントロピーは不確実性の指標で、全ての事象が等確率（一様分布）のとき最大になります。逆に、1つの事象が確実に起こる場合（確定的）はエントロピーが0（不確実性なし）になります。H = -Σ p(x)log p(x) で計算されます。"
+  },
+  {
+    category: "数理・統計",
+    question: "最小二乗法の目的として最も適切なものはどれか。",
+    options: [
+      "データのサンプル数を最小化する",
+      "予測値と実測値の差（残差）の二乗和を最小化するパラメータを求める",
+      "モデルのパラメータ数を最小化する",
+      "計算時間を最小化する"
+    ],
+    answer: 1,
+    explanation: "最小二乗法は、モデルの予測値と実測値の差（残差）の二乗和を最小化するようにパラメータを決定する手法です。線形回帰の基本的な推定方法であり、正規方程式や勾配降下法で解くことができます。"
+  },
+  {
+    category: "数理・統計",
+    question: "偏微分の直感的な意味として最も適切なものはどれか。",
+    options: [
+      "全ての変数を同時に変化させたときの関数の変化量",
+      "他の変数を固定し、1つの変数のみを変化させたときの関数の変化率",
+      "関数の最大値を求める操作",
+      "関数を積分する操作"
+    ],
+    answer: 1,
+    explanation: "偏微分は、多変数関数において、他の変数を定数として固定し、1つの変数についてのみ微分する操作です。機械学習では損失関数を各パラメータで偏微分した勾配を使ってパラメータを更新します。"
+  },
+  {
+    category: "数理・統計",
+    question: "ベクトルのコサイン類似度が0の場合、2つのベクトルの関係はどれか。",
+    options: ["同じ方向を向いている", "正反対の方向を向いている", "直交している（無相関）", "同一のベクトルである"],
+    answer: 2,
+    explanation: "コサイン類似度はベクトル間の角度のコサインで、1は同じ方向、0は直交（90度）、-1は正反対を意味します。自然言語処理で単語や文の類似度を測るのによく使われます。"
+  },
+  {
+    category: "数理・統計",
+    question: "行列の固有値・固有ベクトルがPCAで果たす役割として最も適切なものはどれか。",
+    options: [
+      "データの欠損値を補完する",
+      "共分散行列の固有ベクトルがデータの分散が最大となる方向（主成分）を示す",
+      "行列の逆行列を効率的に計算する",
+      "データの平均値を計算する"
+    ],
+    answer: 1,
+    explanation: "PCAでは、データの共分散行列の固有値分解を行い、固有ベクトルがデータの分散が最大となる方向（主成分軸）を示します。固有値は各主成分方向の分散の大きさを表し、固有値が大きい順に重要な主成分となります。"
+  },
+
+  // ── 自然言語処理（追加） ──
+  {
+    category: "自然言語処理",
+    question: "TF-IDFの説明として最も適切なものはどれか。",
+    options: [
+      "単語の出現頻度のみを考慮した指標",
+      "単語の出現頻度（TF）と文書全体での希少性（IDF）を掛け合わせた重要度指標",
+      "文書の類似度を計算するアルゴリズム",
+      "テキストを分類するニューラルネットワーク"
+    ],
+    answer: 1,
+    explanation: "TF-IDF（Term Frequency - Inverse Document Frequency）は、TF（その文書内での出現頻度）とIDF（全文書中での希少性）の積で、ある文書における単語の重要度を表します。頻出かつ特定の文書に集中する単語が高いスコアを得ます。"
+  },
+  {
+    category: "自然言語処理",
+    question: "形態素解析の説明として最も適切なものはどれか。",
+    options: [
+      "文の構文構造（主語、動詞、目的語など）を解析する処理",
+      "文を意味のある最小単位（形態素）に分割し、品詞を付与する処理",
+      "文の感情（ポジティブ/ネガティブ）を判定する処理",
+      "文を他の言語に翻訳する処理"
+    ],
+    answer: 1,
+    explanation: "形態素解析は、日本語などの分かち書きされていない言語のテキストを、意味を持つ最小単位（形態素）に分割し、各形態素の品詞（名詞、動詞、助詞等）を判定する処理です。MeCab、Janome、Sudachiなどのツールが広く使われています。"
+  },
+  {
+    category: "自然言語処理",
+    question: "Bag-of-Words（BoW）モデルの欠点として最も適切なものはどれか。",
+    options: [
+      "計算コストが高すぎる",
+      "単語の出現順序や文脈を考慮できない",
+      "日本語に対応していない",
+      "大量のメモリを必要とする"
+    ],
+    answer: 1,
+    explanation: "Bag-of-Words（BoW）は、文書を各単語の出現回数（または頻度）のベクトルで表現するモデルです。シンプルで計算が軽い反面、単語の順序や文脈情報が失われるため、「犬が猫を追いかけた」と「猫が犬を追いかけた」を区別できません。"
+  },
+  {
+    category: "自然言語処理",
+    question: "固有表現認識（NER: Named Entity Recognition）のタスクとして最も適切なものはどれか。",
+    options: [
+      "文の感情を分析する",
+      "テキストから人名・地名・組織名などの固有表現を抽出する",
+      "文法の正誤を判定する",
+      "テキストを要約する"
+    ],
+    answer: 1,
+    explanation: "固有表現認識（NER）は、テキスト中から人名、地名、組織名、日時、金額などの固有表現を検出し、そのカテゴリを分類するタスクです。情報抽出や質問応答システムの基盤技術として重要です。"
+  },
+  {
+    category: "自然言語処理",
+    question: "BPE（Byte Pair Encoding）の説明として最も適切なものはどれか。",
+    options: [
+      "バイト単位でデータを圧縮するアルゴリズム",
+      "高頻度の文字ペアを繰り返し結合してサブワード単位を構築するトークン化手法",
+      "テキストをバイナリに変換するエンコーディング方式",
+      "文字レベルの言語モデル"
+    ],
+    answer: 1,
+    explanation: "BPE（Byte Pair Encoding）は、最も頻繁に出現する文字ペアを繰り返し結合していくことでサブワード辞書を構築するトークン化手法です。未知語に対応でき、語彙サイズを制御可能です。GPTシリーズなどのLLMで広く使われています。"
+  },
+  {
+    category: "自然言語処理",
+    question: "Chain-of-Thought（CoT）プロンプティングの説明として最も適切なものはどれか。",
+    options: [
+      "複数のプロンプトを連鎖的に送信する手法",
+      "思考過程（推論ステップ）を段階的に示すことで、LLMの推論精度を向上させる手法",
+      "複数のLLMを連結して使用する手法",
+      "プロンプトを自動的に最適化する手法"
+    ],
+    answer: 1,
+    explanation: "Chain-of-Thought（CoT）プロンプティングは、「ステップバイステップで考えてください」のように推論過程の明示を促すことで、LLMの算術、常識推論、論理推論などの精度を向上させる手法です。2022年にGoogleの研究者らが提案しました。"
+  },
+  {
+    category: "自然言語処理",
+    question: "埋め込み（Embedding）の目的として最も適切なものはどれか。",
+    options: [
+      "テキストを暗号化する",
+      "離散的なデータ（単語など）を連続的な密なベクトル空間に写像する",
+      "テキストを圧縮してファイルサイズを削減する",
+      "テキストを音声に変換する"
+    ],
+    answer: 1,
+    explanation: "埋め込み（Embedding）は、単語や文などの離散的なデータを、意味的な関係を保持した低次元の連続ベクトル空間に写像する技術です。意味が近いデータはベクトル空間上でも近い位置に配置されます。"
+  },
+  {
+    category: "自然言語処理",
+    question: "感情分析（Sentiment Analysis）の説明として最も適切なものはどれか。",
+    options: [
+      "テキストの文法的な正しさを判定するタスク",
+      "テキストに含まれる感情や意見の極性（ポジティブ/ネガティブ等）を判定するタスク",
+      "テキストの著者を特定するタスク",
+      "テキストの要約を生成するタスク"
+    ],
+    answer: 1,
+    explanation: "感情分析は、テキストに含まれる感情や意見の極性（ポジティブ、ネガティブ、ニュートラル）を自動的に判定するタスクです。商品レビューの分析、SNS上の世論調査、ブランド評価などに活用されています。"
+  },
+  {
+    category: "自然言語処理",
+    question: "LLMにおける「コンテキストウィンドウ」の説明として最も適切なものはどれか。",
+    options: [
+      "モデルが学習に使用したデータの期間",
+      "モデルが一度に処理できる入出力トークンの最大数",
+      "モデルが表示するGUIのウィンドウサイズ",
+      "モデルの推論にかかる時間"
+    ],
+    answer: 1,
+    explanation: "コンテキストウィンドウは、LLMが一度に処理（参照）できるトークンの最大数です。例えばGPT-4は128Kトークン、Claudeは200Kトークンなどのコンテキストウィンドウを持ちます。この範囲を超えるテキストは一度に処理できません。"
+  },
+
+  // ── 画像認識（追加） ──
+  {
+    category: "画像認識",
+    question: "VGGNetの特徴として最も適切なものはどれか。",
+    options: [
+      "非常に浅いネットワーク構造",
+      "3×3の小さなフィルタを重ねた深いネットワーク構造のシンプルさ",
+      "Inception構造の採用",
+      "残差接続（Skip Connection）の導入"
+    ],
+    answer: 1,
+    explanation: "VGGNet（2014年、オックスフォード大学）は、3×3の小さな畳み込みフィルタを多数重ねた深い（16層/19層）がシンプルな構造が特徴です。構造のシンプルさから多くの研究の基盤として使われていますが、パラメータ数が多い点が課題です。"
+  },
+  {
+    category: "画像認識",
+    question: "GoogLeNet（Inception）の特徴として最も適切なものはどれか。",
+    options: [
+      "全結合層を大量に使用している",
+      "異なるサイズの畳み込みフィルタを並列に適用するInceptionモジュールを採用",
+      "RNNを画像認識に適用したモデル",
+      "教師なし学習で画像を分類するモデル"
+    ],
+    answer: 1,
+    explanation: "GoogLeNet（Inception v1, 2014年）は、1×1、3×3、5×5の異なるサイズの畳み込みフィルタとプーリングを並列に適用するInceptionモジュールを採用しました。これにより、効率的に多スケールの特徴を抽出でき、パラメータ数を抑えつつ高い精度を実現しました。"
+  },
+  {
+    category: "画像認識",
+    question: "画像のスタイル変換（Neural Style Transfer）で使われる技術として最も適切なものはどれか。",
+    options: [
+      "強化学習",
+      "CNNの中間層の特徴マップを利用してコンテンツとスタイルを分離・再結合する",
+      "RNNによる系列生成",
+      "k-meansクラスタリング"
+    ],
+    answer: 1,
+    explanation: "Neural Style Transferは、CNNの浅い層がテクスチャ（スタイル）、深い層がコンテンツを捉えるという性質を利用します。コンテンツ画像の内容とスタイル画像の画風を保持するように、生成画像を最適化することで、芸術的なスタイル変換を実現します。"
+  },
+  {
+    category: "画像認識",
+    question: "Grad-CAMの目的として最も適切なものはどれか。",
+    options: [
+      "画像分類の精度を向上させる",
+      "CNNが画像のどの領域に注目して判断したかを可視化する",
+      "画像のノイズを除去する",
+      "画像の解像度を向上させる"
+    ],
+    answer: 1,
+    explanation: "Grad-CAM（Gradient-weighted Class Activation Mapping）は、CNNの最終畳み込み層の勾配情報を用いて、モデルが分類判断の際にどの領域に注目したかをヒートマップで可視化する手法です。モデルの判断根拠の説明（XAI）に広く使われています。"
+  },
+  {
+    category: "画像認識",
+    question: "画像認識における転移学習で、一般的にどの層のパラメータを固定（フリーズ）することが多いか。",
+    options: [
+      "出力層に近い上位層",
+      "入力層に近い下位層（低レベル特徴を抽出する層）",
+      "全ての層",
+      "ランダムに選んだ層"
+    ],
+    answer: 1,
+    explanation: "転移学習では、入力に近い下位層は汎用的な低レベル特徴（エッジ、テクスチャ）を学習しているため固定し、出力に近い上位層のみを新しいタスク用に再学習（ファインチューニング）することが一般的です。データが少ない場合に特に有効です。"
+  },
+  {
+    category: "画像認識",
+    question: "インスタンスセグメンテーションとセマンティックセグメンテーションの違いとして最も適切なものはどれか。",
+    options: [
+      "インスタンスセグメンテーションの方が計算が軽い",
+      "インスタンスセグメンテーションは同じクラスの個々の物体を区別するが、セマンティックセグメンテーションは区別しない",
+      "セマンティックセグメンテーションの方が精度が高い",
+      "両者に違いはない"
+    ],
+    answer: 1,
+    explanation: "セマンティックセグメンテーションはピクセル単位でクラスラベルを付与しますが、同じクラスの複数の物体を区別しません。インスタンスセグメンテーション（Mask R-CNN等）は、同じクラスでも個々の物体（インスタンス）を区別して分割します。"
+  },
+  {
+    category: "画像認識",
+    question: "ストライド（Stride）の説明として最も適切なものはどれか。",
+    options: [
+      "フィルタのサイズ",
+      "畳み込みフィルタをスライドさせる際の移動幅",
+      "プーリング層の出力サイズ",
+      "パディングの幅"
+    ],
+    answer: 1,
+    explanation: "ストライドは、畳み込みまたはプーリング操作でフィルタを入力上でスライドさせる際の移動幅（ステップ数）です。ストライド1では1ピクセルずつ、ストライド2では2ピクセルずつ移動します。ストライドを大きくすると出力の空間サイズが小さくなります。"
+  },
+
+  // ── 生成AI（追加） ──
+  {
+    category: "生成AI",
+    question: "Stable Diffusionの特徴として最も適切なものはどれか。",
+    options: [
+      "クローズドソースの商用モデル",
+      "潜在空間で拡散プロセスを行うオープンソースの画像生成モデル",
+      "テキストのみを生成するモデル",
+      "強化学習ベースの画像生成モデル"
+    ],
+    answer: 1,
+    explanation: "Stable Diffusion（2022年）は、画像全体ではなく潜在空間（Latent Space）で拡散プロセスを行うことで計算効率を大幅に改善したオープンソースの画像生成モデルです。テキストから画像を生成（Text-to-Image）でき、一般のGPUでも実行可能です。"
+  },
+  {
+    category: "生成AI",
+    question: "エージェント（AI Agent）の説明として最も適切なものはどれか。",
+    options: [
+      "人間のオペレーターがAIに指示を出す役割",
+      "LLMが自律的に計画・ツール使用・推論を行い、複雑なタスクを遂行するシステム",
+      "AIモデルの訓練を管理するソフトウェア",
+      "AIの出力を人間がレビューするプロセス"
+    ],
+    answer: 1,
+    explanation: "AIエージェントは、LLMを中核として自律的に目標設定・計画立案・外部ツールの使用・推論を行い、複雑なタスクを段階的に解決するシステムです。検索、コード実行、API呼び出しなどのツールと連携して動作します。"
+  },
+  {
+    category: "生成AI",
+    question: "テキストから画像を生成する技術において、CLIPの役割として最も適切なものはどれか。",
+    options: [
+      "画像のピクセル値を直接生成する",
+      "テキストと画像の意味的な対応を学習し、テキスト条件付き画像生成のガイドとなる",
+      "生成画像の解像度を上げる",
+      "画像をテキストに変換する"
+    ],
+    answer: 1,
+    explanation: "CLIP（Contrastive Language-Image Pre-training, OpenAI, 2021年）は、大量の画像-テキストペアから対照学習でテキストと画像の意味的な対応関係を学習するモデルです。DALL-EやStable Diffusionでは、テキストの意味を理解して画像生成をガイドする役割を果たします。"
+  },
+  {
+    category: "生成AI",
+    question: "AIの出力が著作権法上の「著作物」として保護されるかについて、日本での現在の考え方として最も適切なものはどれか。",
+    options: [
+      "AIの出力は全て自動的に著作権で保護される",
+      "AI単独の生成物は著作物性が認められにくいが、人間の創作的寄与がある場合は著作物となりうる",
+      "AIの出力に著作権は一切認められない",
+      "AIの開発者に著作権が帰属する"
+    ],
+    answer: 1,
+    explanation: "日本の著作権法では、著作物は「思想又は感情を創作的に表現したもの」とされ、AI単独の生成物には創作意図がないため著作物性が認められにくいとされています。ただし、人間がプロンプトの工夫や編集で創作的寄与を行った場合は著作物となりうるとする見解が有力です。"
+  },
+  {
+    category: "生成AI",
+    question: "LLMにおける「Temperature」パラメータの役割として最も適切なものはどれか。",
+    options: [
+      "モデルの学習速度を制御する",
+      "出力のランダム性（創造性）を制御する。高いと多様、低いと確定的な出力になる",
+      "モデルのメモリ使用量を制御する",
+      "入力テキストの最大長を制御する"
+    ],
+    answer: 1,
+    explanation: "Temperatureは、LLMの推論時に次のトークンの確率分布をどれだけ「尖らせる」かを制御するパラメータです。Temperatureが低い（0に近い）と最も確率の高いトークンが選ばれやすく確定的な出力に、高いと確率分布が平坦になり多様で創造的な出力になります。"
+  },
+  {
+    category: "生成AI",
+    question: "Instruction Tuningの説明として最も適切なものはどれか。",
+    options: [
+      "モデルに特定のプログラミング言語を学習させること",
+      "指示文（Instruction）と望ましい出力のペアでモデルをファインチューニングし、指示に従う能力を向上させること",
+      "モデルの推論速度を向上させるチューニング",
+      "ハードウェアの設定を最適化すること"
+    ],
+    answer: 1,
+    explanation: "Instruction Tuningは、「〜してください」という指示文と望ましい応答のペアデータでLLMをファインチューニングする手法です。これにより、モデルが様々な指示を理解し適切に応答できるようになります。FLAN、InstructGPTなどが代表的です。"
+  },
+  {
+    category: "生成AI",
+    question: "Transformerのスケーリング則（Scaling Law）の説明として最も適切なものはどれか。",
+    options: [
+      "モデルのサイズを大きくすると必ず過学習する",
+      "モデルサイズ、データ量、計算量を増やすとモデルの性能が予測可能な形で向上するという法則",
+      "モデルのサイズとコストが線形に比例する法則",
+      "大きなモデルほど推論が速くなる法則"
+    ],
+    answer: 1,
+    explanation: "スケーリング則は、LLMの性能がモデルのパラメータ数、学習データ量、計算量（FLOPs）のべき乗に従って予測可能に向上するという経験法則です。OpenAIの研究（2020年）で示され、大規模モデル開発の指針となっています。"
+  },
+
+  // ── 法律・倫理・社会（追加） ──
+  {
+    category: "法律・倫理・社会",
+    question: "GDPRにおけるAI関連の規定として最も適切なものはどれか。",
+    options: [
+      "AIの開発を全面的に禁止している",
+      "個人に重大な影響を与える自動処理のみに基づく意思決定に対して、説明を求める権利や異議を唱える権利を規定している",
+      "EU域内でのAI利用を推進している",
+      "AIモデルのオープンソース化を義務づけている"
+    ],
+    answer: 1,
+    explanation: "GDPR（EU一般データ保護規則）第22条では、プロファイリングを含む自動化された意思決定のみに基づいて個人に重大な影響を及ぼす決定を受けない権利が規定されています。また、データ主体はその決定に関する説明を求め、異議を唱える権利があります。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "「AIの倫理原則」として国際的に広く合意されている項目に含まれないものはどれか。",
+    options: ["透明性", "公平性", "プライバシー保護", "利益の最大化"],
+    answer: 3,
+    explanation: "AIの倫理原則として国際的に広く合意されている項目は、透明性、公平性・非差別、プライバシー保護、安全性、説明責任（アカウンタビリティ）などです。「利益の最大化」は一般的な倫理原則には含まれていません。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "不正競争防止法における「限定提供データ」の説明として最も適切なものはどれか。",
+    options: [
+      "個人情報に該当するデータ",
+      "業として特定の者に提供される、相当量蓄積され管理されているデータ",
+      "政府が公開しているオープンデータ",
+      "暗号化されたデータ全般"
+    ],
+    answer: 1,
+    explanation: "限定提供データとは、不正競争防止法で保護されるデータで、①業として特定の者に提供される、②電磁的方法で相当量蓄積される、③電磁的方法で管理されている、の3要件を満たすデータです。AI学習用のデータセットもこれに該当する場合があります。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIバイアスの種類として「確認バイアス」の説明に最も近いものはどれか。",
+    options: [
+      "学習データに特定の集団が過剰に含まれることで生じるバイアス",
+      "自分の先入観に合致する情報ばかりを重視し、反証する情報を無視する傾向",
+      "AIの出力を過信するバイアス",
+      "新しい情報よりも古い情報を重視するバイアス"
+    ],
+    answer: 1,
+    explanation: "確認バイアス（Confirmation Bias）は、人間が自分の既存の信念や仮説に合致する情報を選択的に収集・解釈し、矛盾する情報を無視する認知バイアスです。AIシステムの評価やデータ収集においても、開発者の確認バイアスが影響を与えることがあります。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "データのプライバシーを保護しつつ機械学習を行う技術として注目されている「連合学習（Federated Learning）」の説明として最も適切なものはどれか。",
+    options: [
+      "全てのデータを一箇所に集約して学習する従来の手法",
+      "データを各デバイスやサイトに分散したまま、モデルのパラメータのみを共有して学習する手法",
+      "学習データを暗号化してクラウドに送信する手法",
+      "差分プライバシーの別名"
+    ],
+    answer: 1,
+    explanation: "連合学習（Federated Learning）は、データを集約せず各デバイスやサイトに留めたまま、各ローカルで学習したモデルのパラメータ（勾配）のみをサーバーで集約してグローバルモデルを更新する手法です。データのプライバシーを保護しつつ、分散データでの学習を可能にします。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIの「ブラックボックス問題」の説明として最も適切なものはどれか。",
+    options: [
+      "AIのソースコードが非公開であること",
+      "AIの内部処理が複雑すぎて、なぜその判断に至ったかを人間が理解できない問題",
+      "AIが暗号通信を使用していること",
+      "AIのハードウェアが密閉された箱に入っていること"
+    ],
+    answer: 1,
+    explanation: "ブラックボックス問題は、特にディープラーニングのような複雑なモデルにおいて、内部の判断過程が不透明で人間が理解・説明できない問題です。医療・金融・法律など説明責任が求められる分野では大きな課題であり、XAI（説明可能AI）の研究動機となっています。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "差分プライバシー（Differential Privacy）の基本的なアイデアとして最も適切なものはどれか。",
+    options: [
+      "データを暗号化して保存すること",
+      "個人のデータが結果に与える影響を数学的に制限するためにノイズを加えること",
+      "個人データを完全に削除してから分析すること",
+      "データアクセスをパスワードで制限すること"
+    ],
+    answer: 1,
+    explanation: "差分プライバシーは、データ分析の結果にノイズを加えることで、個々のデータレコードが含まれていてもいなくても結果がほとんど変わらないようにする数学的なフレームワークです。AppleやGoogleもユーザーデータの収集で採用しています。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "日本の「AI事業者ガイドライン」の特徴として最も適切なものはどれか。",
+    options: [
+      "法的拘束力を持つ規制法",
+      "AI開発者・提供者・利用者それぞれの責務を示す自主的なガイドライン",
+      "AI産業を推進するための補助金制度",
+      "特定のAI技術のみを規制する法律"
+    ],
+    answer: 1,
+    explanation: "日本の「AI事業者ガイドライン」（2024年策定）は、法的拘束力はないものの、AI開発者、AI提供者、AI利用者それぞれが考慮すべき事項（安全性、公平性、透明性、プライバシー等）を示した自主的なガイドラインです。EUのAI Act（規制法）とは性格が異なります。"
+  },
+
+  // ── AIの社会実装（追加） ──
+  {
+    category: "AIの社会実装",
+    question: "AIの社会実装において「CRISP-DM」とは何か。",
+    options: [
+      "AI専用のプログラミング言語",
+      "データマイニング・分析プロジェクトの標準的なプロセスモデル",
+      "AIチップのアーキテクチャ",
+      "クラウドAIサービスの名称"
+    ],
+    answer: 1,
+    explanation: "CRISP-DM（Cross-Industry Standard Process for Data Mining）は、データマイニングプロジェクトの標準プロセスモデルで、①ビジネス理解、②データ理解、③データ準備、④モデリング、⑤評価、⑥展開の6段階で構成されます。AIプロジェクトの進め方の指針としても広く使われています。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AIモデルのデプロイ後に性能が低下する現象を何というか。",
+    options: ["過学習", "データドリフト（コンセプトドリフト）", "勾配消失", "メモリリーク"],
+    answer: 1,
+    explanation: "データドリフト（概念ドリフト）は、モデルのデプロイ後に入力データの分布や、入力と出力の関係が時間とともに変化し、モデルの性能が低下する現象です。定期的なモデルの再学習やデータのモニタリングが対策として重要です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "責任あるAI（Responsible AI）の実践に含まれる要素として最も適切でないものはどれか。",
+    options: ["公平性の確保", "説明可能性の担保", "利益の最大化のみを追求すること", "プライバシーの保護"],
+    answer: 2,
+    explanation: "責任あるAI（Responsible AI）は、公平性、透明性、説明可能性、プライバシー保護、安全性、アカウンタビリティなどの原則に基づいてAIを開発・運用することです。利益の最大化のみを追求することは、これらの原則に反する可能性があります。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "GPUがディープラーニングの学習に適している理由として最も適切なものはどれか。",
+    options: [
+      "逐次処理が高速であるため",
+      "大量の並列計算（行列演算）を高速に処理できるため",
+      "メモリ容量がCPUより少ないため",
+      "消費電力が低いため"
+    ],
+    answer: 1,
+    explanation: "GPUは数千のコアを持ち、大量の行列演算を並列に処理できる点がディープラーニングに適しています。ニューラルネットワークの学習は行列の積和演算が中心であり、GPUの並列計算能力を活用することで、CPUの数十〜数百倍の速度で学習が可能です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "RPA（Robotic Process Automation）とAIの関係として最も適切なものはどれか。",
+    options: [
+      "RPAとAIは同じ技術である",
+      "RPAはルールベースの定型業務を自動化し、AIを組み合わせることで非定型業務にも対応可能になる",
+      "AIがRPAを完全に置き換えた",
+      "RPAはAIの一種である"
+    ],
+    answer: 1,
+    explanation: "RPAはルールベースで定型的なPC操作を自動化する技術です。単体ではルール化できない非定型業務には対応できませんが、AIの画像認識、自然言語処理、判断能力と組み合わせることで、より高度な業務自動化（インテリジェントオートメーション）が可能になります。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AIを導入する際の「倫理的影響評価（Ethics Impact Assessment）」の目的として最も適切なものはどれか。",
+    options: [
+      "AIの計算コストを見積もる",
+      "AIシステムが社会・個人に与えうるリスクや倫理的影響を事前に評価・軽減する",
+      "AIモデルの精度を評価する",
+      "AIの特許取得可能性を調査する"
+    ],
+    answer: 1,
+    explanation: "倫理的影響評価は、AIシステムの開発・導入前に、プライバシー、公平性、安全性、人権など様々な観点から社会的・倫理的リスクを体系的に評価し、必要な対策を講じるプロセスです。責任あるAIの実践において重要な手法です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "日本のSociety 5.0で目指す社会の姿として最も適切なものはどれか。",
+    options: [
+      "重工業中心の工業社会",
+      "AIやIoTなどの先端技術を活用して、経済発展と社会課題の解決を両立する超スマート社会",
+      "農業中心の社会への回帰",
+      "完全にAIに管理された社会"
+    ],
+    answer: 1,
+    explanation: "Society 5.0は、日本政府が提唱する未来社会のコンセプトで、狩猟社会(1.0)、農耕社会(2.0)、工業社会(3.0)、情報社会(4.0)に続く第5の社会です。サイバー空間とフィジカル空間を高度に融合させ、AIやIoT等の技術で経済発展と社会課題の解決を両立する社会を目指します。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AIプロジェクトにおける「データパイプライン」の説明として最も適切なものはどれか。",
+    options: [
+      "データを保存するストレージ装置",
+      "データの収集・加工・変換・蓄積を自動的かつ継続的に行う一連のデータ処理の流れ",
+      "データをインターネットで送受信する通信プロトコル",
+      "データの暗号化手法"
+    ],
+    answer: 1,
+    explanation: "データパイプラインは、データの収集→前処理→変換→蓄積→供給の一連の流れを自動化・管理する仕組みです。AIシステムの安定運用には、データが継続的にクリーンな状態で供給されるパイプラインの構築が不可欠です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AI開発における「アノテーション」の説明として最も適切なものはどれか。",
+    options: [
+      "モデルの性能を評価するプロセス",
+      "データに正解ラベルや情報を付与する作業",
+      "プログラムにコメントを記述すること",
+      "学習済みモデルを公開すること"
+    ],
+    answer: 1,
+    explanation: "アノテーションは、教師あり学習に必要な正解ラベルをデータに付与する作業です。画像にバウンディングボックスやクラスラベルを付ける、テキストに感情ラベルを付けるなどが例です。品質の高いアノテーションがモデル精度に直結するため、非常に重要な工程です。"
+  },
+
+  // ── 追加の横断問題 ──
+  {
+    category: "機械学習",
+    question: "「No Free Lunch定理」の意味として最も適切なものはどれか。",
+    options: [
+      "無料のデータセットは品質が低いということ",
+      "全てのタスクに対して最良の汎用アルゴリズムは存在しないということ",
+      "計算コストの削減には限界があるということ",
+      "機械学習は必ずコストがかかるということ"
+    ],
+    answer: 1,
+    explanation: "No Free Lunch定理は、全ての問題に対して平均的に最も優れた万能のアルゴリズムは存在しないことを数学的に示した定理です。あるアルゴリズムがある問題で優れていれば、別の問題では劣ることがあります。問題の性質に応じて適切なアルゴリズムを選択することが重要です。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "DenseNetの特徴として最も適切なものはどれか。",
+    options: [
+      "全ての層が全結合されている",
+      "各層が全ての先行層の出力を入力として受け取る密な接続構造",
+      "非常に疎な接続構造",
+      "畳み込みを一切使わない構造"
+    ],
+    answer: 1,
+    explanation: "DenseNet（Densely Connected Network, 2017年）は、各層が前の全ての層の特徴マップを入力として受け取る密な接続（Dense Connection）が特徴です。特徴の再利用を促進し、パラメータ効率が良く、勾配の伝播も改善されます。ResNetのスキップ接続を更に発展させた構造です。"
+  },
+  {
+    category: "数理・統計",
+    question: "過適合を抑制するために損失関数にペナルティ項を加える手法を総称して何と呼ぶか。",
+    options: ["データ拡張", "正則化（Regularization）", "特徴量選択", "バッチ正規化"],
+    answer: 1,
+    explanation: "正則化（Regularization）は、モデルの複雑さにペナルティを課すことで過適合を抑制する手法の総称です。L1正則化（Lasso）、L2正則化（Ridge / Weight Decay）が代表的です。ドロップアウトやデータ拡張も広義の正則化手法に含まれます。"
+  },
+  {
+    category: "自然言語処理",
+    question: "Seq2SeqモデルにおけるTeacher Forcingの説明として最も適切なものはどれか。",
+    options: [
+      "教師データを使わずに学習する手法",
+      "デコーダの学習時に、前のステップの予測結果ではなく正解データを次の入力として使う手法",
+      "教師モデルの知識を生徒モデルに転移する手法",
+      "学習率を強制的に変更する手法"
+    ],
+    answer: 1,
+    explanation: "Teacher Forcingは、Seq2Seqモデルのデコーダを学習する際に、前のステップの予測出力ではなく、正解のトークンを次のステップの入力として使用する手法です。学習を安定・高速化しますが、推論時との乖離（Exposure Bias）が課題となることがあります。"
+  },
+  {
+    category: "画像認識",
+    question: "パディング（Padding）を畳み込み処理で使用する主な目的はどれか。",
+    options: [
+      "計算速度を向上させるため",
+      "入力の端の情報の損失を防ぎ、出力サイズを調整するため",
+      "活性化関数を適用するため",
+      "バッチ正規化を行うため"
+    ],
+    answer: 1,
+    explanation: "パディングは、入力画像の周囲にゼロ等の値を追加する処理です。主な目的は①畳み込み後に出力サイズが小さくなるのを防ぐ（サイズ保持）、②画像の端にある情報を有効に活用する、ことです。「Same」パディングは入出力サイズを同じに保ちます。"
+  },
+  {
+    category: "生成AI",
+    question: "LLMの「トークン」の説明として最も適切なものはどれか。",
+    options: [
+      "文字単位の入力",
+      "モデルが処理する最小のテキスト単位で、単語全体、サブワード、文字など様々な粒度がある",
+      "文全体を1つの単位として扱うもの",
+      "暗号化されたテキスト"
+    ],
+    answer: 1,
+    explanation: "トークンはLLMがテキストを処理する最小単位です。BPEなどのトークナイザにより、頻出する語は1トークン、珍しい語は複数トークンに分割されます。英語では1トークン≈4文字、日本語では1文字が1〜2トークンになることが多いです。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "AIによる自動意思決定において、「Human in the Loop（HITL）」の意味として最も適切なものはどれか。",
+    options: [
+      "AIが完全に自律的に意思決定を行うこと",
+      "AIの意思決定プロセスに人間が介在し、最終判断や監視を行うこと",
+      "人間がAIの学習データを作成すること",
+      "人間がAIのコードをレビューすること"
+    ],
+    answer: 1,
+    explanation: "Human in the Loop（HITL）は、AIの意思決定プロセスに人間が介在する仕組みです。AIが提案した判断を人間が確認・承認・修正できるようにすることで、安全性と信頼性を確保します。高リスクな意思決定（医療診断、融資審査等）で特に重要です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "「デジタルツイン」の説明として最も適切なものはどれか。",
+    options: [
+      "データのバックアップコピー",
+      "現実世界のモノやプロセスをデジタル空間上に再現した仮想モデル",
+      "2台のコンピュータを連動させるシステム",
+      "同一のAIモデルを2つの環境にデプロイすること"
+    ],
+    answer: 1,
+    explanation: "デジタルツインは、物理的な設備、製品、プロセスをデジタル空間上に精密に再現した仮想モデルです。IoTセンサーからのリアルタイムデータとAIを組み合わせ、シミュレーション、予測保全、最適化などに活用されます。製造業、都市計画などで注目されています。"
+  },
+  {
+    category: "機械学習",
+    question: "グリッドサーチの説明として最も適切なものはどれか。",
+    options: [
+      "データをグリッド状に分割して可視化する手法",
+      "ハイパーパラメータの候補値を全組み合わせ試して最適値を探索する手法",
+      "特徴量をグリッド状に配置する手法",
+      "画像をグリッドに分割して処理する手法"
+    ],
+    answer: 1,
+    explanation: "グリッドサーチは、ハイパーパラメータの候補値を事前に定義し、全ての組み合わせを網羅的に試して最適なハイパーパラメータを探索する手法です。確実に最適解を見つけられますが、候補が多いと計算コストが膨大になります。ランダムサーチやベイズ最適化が代替手法です。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "オートエンコーダの一般的な用途に含まれないものはどれか。",
+    options: ["次元削減", "異常検知", "ノイズ除去", "教師あり分類"],
+    answer: 3,
+    explanation: "オートエンコーダは入力を圧縮（エンコード）・復元（デコード）する教師なし学習モデルで、次元削減、特徴抽出、異常検知、ノイズ除去（Denoising Autoencoder）などに使われます。教師あり分類は直接のユースケースではありません。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "DepthwiseSeparable Convolution（深さ方向分離畳み込み）のメリットとして最も適切なものはどれか。",
+    options: [
+      "精度が大幅に向上する",
+      "通常の畳み込みと同等の表現力を持ちつつ、計算量とパラメータ数を大幅に削減できる",
+      "GPUなしで高速に動作する",
+      "大規模データでのみ有効"
+    ],
+    answer: 1,
+    explanation: "深さ方向分離畳み込みは、畳み込みをDepthwise（空間方向）とPointwise（チャネル方向）に分離する手法です。MobileNetやXceptionで採用され、通常の畳み込みと比べて計算量を1/8〜1/9に削減しつつ、同等に近い精度を実現できます。"
+  },
+  {
+    category: "生成AI",
+    question: "AIガバナンスの説明として最も適切なものはどれか。",
+    options: [
+      "AIの技術的な性能を向上させるための取り組み",
+      "AIの開発・運用・利用に関するルール・体制・プロセスを組織的に管理する仕組み",
+      "AIの特許を管理すること",
+      "AIのマーケティング戦略"
+    ],
+    answer: 1,
+    explanation: "AIガバナンスは、AIシステムの開発から運用・廃棄までのライフサイクル全体において、リスク管理、倫理的配慮、法令遵守、品質管理などを組織的に行う仕組みです。企業のAI利用が拡大する中、責任あるAI活用のために不可欠な取り組みです。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "「記号主義（Symbolism）」と「コネクショニズム（Connectionism）」のAIアプローチの違いとして最も適切なものはどれか。",
+    options: [
+      "記号主義は新しいアプローチで、コネクショニズムは古いアプローチ",
+      "記号主義はルールや論理で知識を表現し、コネクショニズムはニューラルネットワークで学習する",
+      "両者は同じアプローチの別名",
+      "コネクショニズムはデータを使わない"
+    ],
+    answer: 1,
+    explanation: "記号主義（Good Old-Fashioned AI / GOFAI）は、論理式やルールで知識を明示的に記述するアプローチ（エキスパートシステム等）です。コネクショニズムは、ニューラルネットワークでデータからパターンを学習するアプローチ（現在のディープラーニング）です。"
+  },
+  {
+    category: "機械学習",
+    question: "次元の呪い（Curse of Dimensionality）の説明として最も適切なものはどれか。",
+    options: [
+      "データの次元が増えるとモデルが単純になりすぎる問題",
+      "特徴量の次元が増加すると、データが疎になり学習に必要なデータ量が指数的に増加する問題",
+      "次元削減を行うと情報が完全に失われる問題",
+      "高次元データはメモリに収まらない問題"
+    ],
+    answer: 1,
+    explanation: "次元の呪いは、特徴量の次元が増加するとデータが高次元空間で極端に疎になり、距離の意味が薄れ、学習に必要なデータ量が指数的に増大する現象です。次元削減（PCA等）や特徴量選択で対処します。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "モデルの「推論（Inference）」と「学習（Training）」の違いとして最も適切なものはどれか。",
+    options: [
+      "推論はパラメータを更新し、学習は予測を行う",
+      "学習はデータからモデルのパラメータを最適化するプロセスで、推論は学習済みモデルで新しいデータに対して予測を行うプロセス",
+      "両者は同じプロセスを指す",
+      "推論は学習の一部である"
+    ],
+    answer: 1,
+    explanation: "学習（Training）は、訓練データを使ってモデルのパラメータを最適化するプロセスです。推論（Inference）は、学習済みモデルを使って新しいデータに対する予測を行うプロセスです。学習は通常高い計算コストが必要ですが、推論は比較的軽量です。"
+  },
+  {
+    category: "自然言語処理",
+    question: "文書要約における「抽出型要約」と「生成型要約」の違いとして最も適切なものはどれか。",
+    options: [
+      "抽出型は長い要約を、生成型は短い要約を作る",
+      "抽出型は元文書の文をそのまま選択し、生成型は新しい文を生成する",
+      "生成型の方が常に精度が低い",
+      "両者に違いはない"
+    ],
+    answer: 1,
+    explanation: "抽出型要約は、元の文書から重要な文や段落をそのまま選択して要約を構成します。生成型要約は、元の文書の内容を理解した上で、新しい表現で要約文を生成します。LLMの登場により、生成型要約の品質が大幅に向上しています。"
+  },
+  {
+    category: "画像認識",
+    question: "Batch Normalizationが推論時と学習時で異なる動作をする理由として最も適切なものはどれか。",
+    options: [
+      "推論時はGPUを使わないため",
+      "学習時はミニバッチの統計量を使い、推論時は学習全体から計算した移動平均の統計量を使うため",
+      "推論時はBatch Normalizationを無効にするため",
+      "学習時と推論時でパラメータが異なるため"
+    ],
+    answer: 1,
+    explanation: "学習時のBatch Normalizationは各ミニバッチの平均・分散で正規化しますが、推論時はミニバッチ単位ではなく、学習中に蓄積した移動平均（Running Mean / Running Variance）を使って正規化します。これにより、1サンプルでも安定した推論が可能になります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Attention機構における「Query」「Key」「Value」の関係として最も適切なものはどれか。",
+    options: [
+      "Query、Key、Valueは全て同じベクトル",
+      "Queryとの関連度をKeyで計算し、その重みに基づいてValueを重み付き和で集約する",
+      "Queryはデータベース検索のためのSQL文",
+      "KeyとValueは常に同一"
+    ],
+    answer: 1,
+    explanation: "Attention機構では、Query（問い合わせ）とKey（キー）の内積で関連度（Attention Weight）を計算し、その重みでValue（値）の重み付き和を求めます。これにより、入力の中から現在のQueryに関連の深い情報を選択的に集約できます。"
+  },
+  {
+    category: "数理・統計",
+    question: "勾配ベクトルの方向が示すものとして最も適切なものはどれか。",
+    options: [
+      "関数の値が最も減少する方向",
+      "関数の値が最も増加する方向",
+      "関数の値が変化しない方向",
+      "ランダムな方向"
+    ],
+    answer: 1,
+    explanation: "勾配ベクトルは、多変数関数において関数値が最も急激に増加する方向を指します。勾配降下法では、勾配の「逆方向」に進むことで関数値（損失）を最小化します。∇f = (∂f/∂x₁, ∂f/∂x₂, ...) で表されます。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "「アルゴリズムによる差別」の具体例として最も適切なものはどれか。",
+    options: [
+      "AIが全てのユーザーに同じ広告を表示すること",
+      "採用AIが特定の性別や人種に対して不利な評価を出すこと",
+      "AIがランダムに判断を下すこと",
+      "AIの処理速度がユーザーによって異なること"
+    ],
+    answer: 1,
+    explanation: "アルゴリズムによる差別の代表例として、Amazonの採用AIが女性応募者に対して不利な評価を出していた事例（2018年報道）があります。過去の採用データ（男性が多い）を学習した結果、性別バイアスが組み込まれていました。このようなバイアスの検出と対策がAI倫理の重要テーマです。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "A/Bテストのアプローチをモデル評価に適用する際の利点として最も適切なものはどれか。",
+    options: [
+      "オフラインのテストデータでの評価が不要になる",
+      "実際のユーザーやビジネス指標に基づいて、モデル変更の効果を統計的に検証できる",
+      "学習データを増やすことができる",
+      "モデルのパラメータを自動調整できる"
+    ],
+    answer: 1,
+    explanation: "A/Bテストは、本番環境でユーザーをランダムに分割し、旧モデル（A）と新モデル（B）の性能を実際のユーザー行動やビジネス指標で比較する手法です。オフラインの評価指標だけでは分からない実運用での効果を統計的に検証できる利点があります。"
+  },
+  {
+    category: "機械学習",
+    question: "不均衡データへの対処法として最も適切なものはどれか。",
+    options: [
+      "少数クラスのデータを全て削除する",
+      "オーバーサンプリング（SMOTE等）やアンダーサンプリングでクラスの比率を調整する",
+      "全てのデータに同じラベルを付ける",
+      "特徴量の数を減らす"
+    ],
+    answer: 1,
+    explanation: "不均衡データでは、少数クラスのオーバーサンプリング（SMOTE: Synthetic Minority Over-sampling Technique等）や多数クラスのアンダーサンプリング、コスト敏感学習（少数クラスの誤分類に大きなペナルティ）などの手法でクラスの不均衡に対処します。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "損失関数として平均二乗誤差（MSE）が主に使われるタスクはどれか。",
+    options: ["多クラス分類", "二値分類", "回帰", "クラスタリング"],
+    answer: 2,
+    explanation: "平均二乗誤差（MSE: Mean Squared Error）は、予測値と実測値の差の二乗の平均で、回帰タスクの標準的な損失関数です。分類タスクでは交差エントロピー誤差が一般的に使われます。"
+  },
+  {
+    category: "生成AI",
+    question: "Mixture of Experts（MoE）アーキテクチャの説明として最も適切なものはどれか。",
+    options: [
+      "複数の専門家が手動でモデルを調整する手法",
+      "入力に応じて複数のサブネットワーク（エキスパート）の一部だけを選択的に活性化し、計算効率を高めるアーキテクチャ",
+      "複数のモデルの出力を平均する手法",
+      "異なる学習アルゴリズムを混合する手法"
+    ],
+    answer: 1,
+    explanation: "MoE（Mixture of Experts）は、複数のエキスパート（サブネットワーク）を持ち、ゲーティングネットワークが入力に応じて少数のエキスパートのみを選択・活性化するアーキテクチャです。全パラメータは大きくても、推論時の計算量を抑えられるため、大規模LLM（Mixtral等）で採用されています。"
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  追加問題 (201〜270)
+  // ══════════════════════════════════════════════════════════
+
+  // ── AIの基礎知識 ──
+  {
+    category: "AIの基礎知識",
+    question: "ダートマス会議（1956年）の歴史的意義として最も適切なものはどれか。",
+    options: [
+      "ディープラーニングが初めて提案された会議",
+      "「人工知能（Artificial Intelligence）」という用語が初めて使われた会議",
+      "インターネットの商用化が決定された会議",
+      "チューリングテストが初めて実施された会議"
+    ],
+    answer: 1,
+    explanation: "1956年のダートマス会議は、ジョン・マッカーシーらが「Artificial Intelligence」という用語を初めて使用し、AI研究を一つの学問分野として確立した歴史的な会議です。第一次AIブームの出発点とされています。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "フレーム問題の説明として最も適切なものはどれか。",
+    options: [
+      "画像のフレームレートが低い問題",
+      "AIが行動を計画する際、関連する事象と無関係な事象を区別できない問題",
+      "ニューラルネットワークのフレームワークが多すぎる問題",
+      "AIの処理速度が遅い問題"
+    ],
+    answer: 1,
+    explanation: "フレーム問題は、AIが行動を起こす際に「何が変化し、何が変化しないか」を効率的に判断できない問題です。現実世界では無限の事象を考慮する必要があり、全てを明示的に記述することは不可能です。記号主義AIの根本的な課題の一つです。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "シンギュラリティ（技術的特異点）の提唱者として最も知られている人物は誰か。",
+    options: ["ジェフリー・ヒントン", "レイ・カーツワイル", "アラン・チューリング", "イーロン・マスク"],
+    answer: 1,
+    explanation: "レイ・カーツワイルは著書『シンギュラリティは近い』(2005年)で、2045年頃にAIが人間の知能を超える技術的特異点（シンギュラリティ）が到来すると予測しました。ただし、この予測には賛否両論があります。"
+  },
+  {
+    category: "AIの基礎知識",
+    question: "中国語の部屋（Chinese Room）の思考実験が主張していることとして最も適切なものはどれか。",
+    options: [
+      "AIは中国語を理解できないこと",
+      "記号を規則通りに操作できても、それは理解（意味の把握）を意味しないこと",
+      "中国語はAIで翻訳できないこと",
+      "AIは英語のみ処理できること"
+    ],
+    answer: 1,
+    explanation: "ジョン・サールの「中国語の部屋」（1980年）は、ルールに従って記号を操作するだけでは真の「理解」はなく、強いAI（意識を持つAI）は不可能だと主張する思考実験です。チューリングテストに対する反論として有名です。"
+  },
+
+  // ── 機械学習 ──
+  {
+    category: "機械学習",
+    question: "主成分分析（PCA）の主な目的として最も適切なものはどれか。",
+    options: [
+      "データの分類",
+      "データの次元を削減しつつ、できるだけ多くの情報（分散）を保持すること",
+      "データの欠損値を補完すること",
+      "データのラベルを付与すること"
+    ],
+    answer: 1,
+    explanation: "PCA（Principal Component Analysis）は、データの分散が最大となる方向（主成分）を見つけ、そこに射影することで次元を削減する教師なし学習の手法です。高次元データの可視化、ノイズ除去、計算効率の改善などに使われます。"
+  },
+  {
+    category: "機械学習",
+    question: "サポートベクターマシン（SVM）における「カーネルトリック」の目的として最も適切なものはどれか。",
+    options: [
+      "学習速度を向上させること",
+      "線形分離不可能なデータを高次元空間に写像し、線形分離可能にすること",
+      "データのノイズを除去すること",
+      "モデルのパラメータ数を削減すること"
+    ],
+    answer: 1,
+    explanation: "カーネルトリックは、入力データを明示的に高次元空間に変換せずに、カーネル関数を用いて高次元空間での内積を効率的に計算する手法です。これにより、元の空間では線形分離できないデータも、暗黙的に高次元空間で線形分離可能にできます。"
+  },
+  {
+    category: "機械学習",
+    question: "ランダムフォレストがバギングの一種である理由として最も適切なものはどれか。",
+    options: [
+      "1つの決定木を使うため",
+      "ブートストラップサンプリングで複数の決定木を独立に学習し、多数決で統合するため",
+      "決定木を逐次的に学習させるため",
+      "勾配降下法で最適化するため"
+    ],
+    answer: 1,
+    explanation: "ランダムフォレストは、ブートストラップサンプリング（元データから重複を許してサンプル抽出）で作った複数のデータセットで決定木を独立に学習させ、多数決（分類）や平均（回帰）で結果を統合するバギング（Bootstrap AGGregatING）の手法です。"
+  },
+  {
+    category: "機械学習",
+    question: "回帰タスクの評価指標として適切でないものはどれか。",
+    options: ["平均二乗誤差（MSE）", "平均絶対誤差（MAE）", "決定係数（R²）", "F1スコア"],
+    answer: 3,
+    explanation: "F1スコアは分類タスクの評価指標（適合率と再現率の調和平均）であり、回帰タスクには使用しません。回帰タスクではMSE、MAE、RMSE（二乗平均平方根誤差）、R²（決定係数）などの指標を使います。"
+  },
+  {
+    category: "機械学習",
+    question: "t-SNE（t-distributed Stochastic Neighbor Embedding）の主な用途として最も適切なものはどれか。",
+    options: [
+      "分類モデルの構築",
+      "高次元データの2次元/3次元への可視化",
+      "時系列データの予測",
+      "データの欠損値補完"
+    ],
+    answer: 1,
+    explanation: "t-SNEは、高次元データの局所的な構造を保ちつつ2次元や3次元に非線形に次元削減する手法で、主にデータの可視化に使用されます。PCAと異なり非線形な構造も捉えられますが、計算コストが高く、パラメータ（perplexity等）に結果が敏感です。"
+  },
+
+  // ── ディープラーニング基礎 ──
+  {
+    category: "ディープラーニング基礎",
+    question: "交差エントロピー誤差（Cross-Entropy Loss）が分類タスクで使われる理由として最も適切なものはどれか。",
+    options: [
+      "計算が簡単だから",
+      "確率分布間の差異を効果的に測り、正解クラスの確率を最大化する勾配が得やすいため",
+      "常にMSEよりも精度が高いため",
+      "正則化の効果があるため"
+    ],
+    answer: 1,
+    explanation: "交差エントロピー誤差は、モデルの出力確率分布と正解ラベルの分布の差異を測る損失関数です。ソフトマックス関数と組み合わせると勾配の計算が明快で、正解クラスの確率が低い時に大きな勾配が生じ、効率的に学習が進みます。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "Layer Normalizationの特徴として最も適切なものはどれか。",
+    options: [
+      "ミニバッチの統計量で正規化する",
+      "各サンプル独立に、一つの層の全ニューロンに対して正規化する",
+      "学習時のみ適用され、推論時は無効になる",
+      "画像認識専用の正規化手法"
+    ],
+    answer: 1,
+    explanation: "Layer Normalizationは、各サンプル独立に、一つの層の全ニューロンの活性化値を正規化します。バッチサイズに依存しないため、RNNやTransformerで広く使用されています。Batch Normalizationはバッチ方向で正規化する点で異なります。"
+  },
+  {
+    category: "ディープラーニング基礎",
+    question: "ミニバッチ学習を行う利点として最も適切でないものはどれか。",
+    options: [
+      "GPUの並列計算を効率的に活用できる",
+      "学習の収束が安定する（確率的変動が適度に抑えられる）",
+      "常にバッチ学習よりも精度が高い",
+      "メモリ使用量を抑えつつ効率的に学習できる"
+    ],
+    answer: 2,
+    explanation: "ミニバッチ学習は、GPUの効率活用、メモリ使用量の抑制、適度なノイズによる局所解の回避などの利点がありますが、必ずバッチ学習よりも精度が高いとは限りません。バッチサイズは精度と効率のトレードオフです。"
+  },
+
+  // ── ディープラーニングの手法 ──
+  {
+    category: "ディープラーニングの手法",
+    question: "EfficientNetの主な革新として最も適切なものはどれか。",
+    options: [
+      "Attentionのみを使ったモデル",
+      "ネットワークの深さ・幅・解像度を統合的にスケーリングするCompound Scalingの提案",
+      "強化学習を画像認識に適用",
+      "1x1畳み込みのみで構成"
+    ],
+    answer: 1,
+    explanation: "EfficientNet（2019年、Google）は、ネットワークの深さ（Depth）、幅（Width）、入力解像度（Resolution）を最適な比率で同時にスケーリングするCompound Scaling法を提案しました。少ないパラメータで従来のモデルを上回る精度を達成しました。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "LoRA（Low-Rank Adaptation）の説明として最も適切なものはどれか。",
+    options: [
+      "大規模モデルを一から学習し直す手法",
+      "事前学習済みモデルの重みを固定し、低ランクの行列を追加して少パラメータでファインチューニングする手法",
+      "モデルの層数を削減する手法",
+      "データの前処理手法"
+    ],
+    answer: 1,
+    explanation: "LoRA（2021年）は、事前学習済みモデルの重み行列を固定し、低ランク行列A・Bの積（W + AB）として少数のパラメータだけを学習する効率的なファインチューニング手法です。フルファインチューニングに近い性能を、少ないメモリと計算コストで実現できます。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "Transformer のデコーダでMasked Self-Attentionが使われる理由として最も適切なものはどれか。",
+    options: [
+      "計算量を削減するため",
+      "生成時に未来のトークン情報を参照しないようにするため",
+      "入力の長さを制限するため",
+      "エンコーダとの接続のため"
+    ],
+    answer: 1,
+    explanation: "デコーダのMasked Self-Attentionは、各位置が自分より後ろ（未来）のトークンにAttentionを向けないようにマスクをかけます。これにより、テキスト生成時に「まだ生成されていない」トークンの情報を使うことを防ぎ、自己回帰的な生成が可能になります。"
+  },
+  {
+    category: "ディープラーニングの手法",
+    question: "ResNetの「残差接続（Residual Connection）」が解決する問題として最も適切なものはどれか。",
+    options: [
+      "過学習問題",
+      "ネットワークが深くなると学習が困難になる劣化問題（Degradation Problem）",
+      "データの不均衡問題",
+      "メモリ不足問題"
+    ],
+    answer: 1,
+    explanation: "ResNet（2015年）は、ネットワークが深くなると精度が劣化する（勾配消失ではなく劣化問題）ことを発見し、入力をそのまま出力に加算するショートカット接続（F(x)+x）を導入しました。これにより100層以上の超深いネットワークでも効果的に学習できるようになりました。"
+  },
+
+  // ── 数理・統計 ──
+  {
+    category: "数理・統計",
+    question: "ベイズの定理の説明として最も適切なものはどれか。",
+    options: [
+      "大量のデータがあれば平均値が母平均に近づくという定理",
+      "事前確率と尤度から事後確率を計算する公式",
+      "全ての確率変数が正規分布に従うという定理",
+      "確率の加法定理と乗法定理の総称"
+    ],
+    answer: 1,
+    explanation: "ベイズの定理は P(A|B) = P(B|A)P(A)/P(B) で表され、データ（B）を観測した後の仮説Aの確率（事後確率）を、事前確率P(A)と尤度P(B|A)から計算します。ベイズ推論、ナイーブベイズ分類器、ベイズ最適化などの基礎です。"
+  },
+  {
+    category: "数理・統計",
+    question: "L1正則化（Lasso）とL2正則化（Ridge）の違いとして最も適切なものはどれか。",
+    options: [
+      "L1の方が常に精度が高い",
+      "L1はパラメータを0にしやすくスパースなモデルを作るが、L2は全パラメータを小さくする",
+      "L2はパラメータを0にしやすい",
+      "両者に違いはない"
+    ],
+    answer: 1,
+    explanation: "L1正則化（Lasso）はパラメータの絶対値の和をペナルティとし、重要でないパラメータを完全に0にするスパースなモデルを作ります。L2正則化（Ridge/Weight Decay）はパラメータの二乗和をペナルティとし、全パラメータを均等に小さくします。L1は特徴量選択にも使われます。"
+  },
+  {
+    category: "数理・統計",
+    question: "確率の乗法定理 P(A∩B) = P(A) × P(B) が成り立つ条件はどれか。",
+    options: [
+      "AとBが排反（互いに素）である場合",
+      "AとBが独立である場合",
+      "AとBが同じ事象である場合",
+      "常に成り立つ"
+    ],
+    answer: 1,
+    explanation: "P(A∩B) = P(A) × P(B) は、事象AとBが統計的に独立（一方の発生が他方の確率に影響しない）である場合にのみ成り立ちます。一般にはP(A∩B) = P(A|B) × P(B) = P(B|A) × P(A)です。"
+  },
+
+  // ── 自然言語処理 ──
+  {
+    category: "自然言語処理",
+    question: "RAG（Retrieval-Augmented Generation）の説明として最も適切なものはどれか。",
+    options: [
+      "大量のテキストデータで追加学習する手法",
+      "外部知識ベースから関連情報を検索し、それを元にLLMが回答を生成する手法",
+      "テキストを画像に変換する手法",
+      "言語モデルの重みを直接編集する手法"
+    ],
+    answer: 1,
+    explanation: "RAG（Retrieval-Augmented Generation）は、ユーザーの質問に対して、まず外部の知識ベース（文書DB、ベクトルDB等）から関連情報を検索（Retrieval）し、その情報をコンテキストとしてLLMに渡して回答を生成（Generation）する手法です。LLMの知識の限界やハルシネーションの軽減に有効です。"
+  },
+  {
+    category: "自然言語処理",
+    question: "GPTシリーズがBERTと異なるアーキテクチャ上の特徴として最も適切なものはどれか。",
+    options: [
+      "GPTはエンコーダのみ、BERTはデコーダのみを使用",
+      "GPTはデコーダのみの自己回帰モデルで、BERTはエンコーダのみの双方向モデル",
+      "GPTは畳み込みベース、BERTはAttentionベース",
+      "両者のアーキテクチャは同一"
+    ],
+    answer: 1,
+    explanation: "GPTはTransformerのデコーダのみを使用し、左から右へ順にトークンを予測する自己回帰モデルです。BERTはエンコーダのみを使用し、マスクされたトークンを前後の文脈から双方向に予測するモデルです。GPTはテキスト生成、BERTは文理解タスクに向いています。"
+  },
+  {
+    category: "自然言語処理",
+    question: "ハルシネーション（Hallucination）の説明として最も適切なものはどれか。",
+    options: [
+      "AIが画像を幻覚的に認識すること",
+      "LLMが事実と異なる情報をもっともらしく生成してしまう現象",
+      "AIの出力が毎回異なること",
+      "AIがユーザーの意図を誤解すること"
+    ],
+    answer: 1,
+    explanation: "ハルシネーション（幻覚）は、LLMが学習データに存在しない事実や、事実と異なる情報をもっともらしい文章として生成してしまう現象です。RAGによる外部知識の参照、ファインチューニング、出力検証などが対策として研究されています。"
+  },
+
+  // ── 画像認識 ──
+  {
+    category: "画像認識",
+    question: "データ拡張（Data Augmentation）の手法に含まれないものはどれか。",
+    options: ["画像の回転・反転", "ランダムクロッピング", "色調変換", "交差検証"],
+    answer: 3,
+    explanation: "データ拡張は、学習データに回転、反転、クロッピング、色調変換、ノイズ付加などの変換を施して擬似的にデータ量を増やす手法です。交差検証はモデル評価の手法であり、データ拡張には含まれません。"
+  },
+  {
+    category: "画像認識",
+    question: "物体検出における「アンカーボックス（Anchor Box）」の役割として最も適切なものはどれか。",
+    options: [
+      "画像にアンカーポイントを設定してトリミングする",
+      "事前に定義された様々なサイズ・アスペクト比のボックスを基準として物体のバウンディングボックスを予測する",
+      "物体の輪郭を検出する",
+      "画像の四隅を固定するポイント"
+    ],
+    answer: 1,
+    explanation: "アンカーボックスは、物体検出モデル（Faster R-CNN、SSD等）で使用される、事前定義された様々なサイズとアスペクト比の基準ボックスです。モデルは各アンカーボックスに対して物体の有無と、正確な位置へのオフセットを予測します。"
+  },
+  {
+    category: "画像認識",
+    question: "特徴マップ（Feature Map）の説明として最も適切なものはどれか。",
+    options: [
+      "入力画像そのもの",
+      "畳み込み層のフィルタ適用後に得られる、特定の特徴に反応した二次元のマップ",
+      "データの地理的な分布を示す地図",
+      "ニューラルネットワークの構造図"
+    ],
+    answer: 1,
+    explanation: "特徴マップは、畳み込み層のフィルタ（カーネル）を入力に適用した結果得られる二次元の出力です。各フィルタは特定のパターン（エッジ、テクスチャなど）に反応し、入力画像のどこにそのパターンが存在するかを示すマップを生成します。"
+  },
+
+  // ── 生成AI ──
+  {
+    category: "生成AI",
+    question: "RLHF（Reinforcement Learning from Human Feedback）の目的として最も適切なものはどれか。",
+    options: [
+      "モデルの推論速度を向上させること",
+      "人間のフィードバックを報酬信号として、モデルの出力を人間の好みに合わせること",
+      "モデルのパラメータ数を削減すること",
+      "学習データを自動的に収集すること"
+    ],
+    answer: 1,
+    explanation: "RLHF（人間のフィードバックによる強化学習）は、人間が複数の出力を比較・評価し、その評価をもとに報酬モデルを学習、PPO等の強化学習でLLMの出力を人間の好みに合わせる手法です。ChatGPTの開発で大きな役割を果たしました。"
+  },
+  {
+    category: "生成AI",
+    question: "拡散モデル（Diffusion Model）の基本原理として最も適切なものはどれか。",
+    options: [
+      "GANのように生成器と判別器を競わせる",
+      "データに段階的にノイズを加える過程の逆（ノイズ除去）を学習して画像を生成する",
+      "オートエンコーダで画像を圧縮・復元する",
+      "強化学習で画像の各ピクセルを決定する"
+    ],
+    answer: 1,
+    explanation: "拡散モデルは、①データに徐々にガウスノイズを加えていく拡散過程と、②ノイズから元のデータを段階的に復元するデノイジング過程を学習するモデルです。DALL-E 2、Stable Diffusion、Midjourneyなどの画像生成AIの基盤技術です。"
+  },
+  {
+    category: "生成AI",
+    question: "ファインチューニングと比較したプロンプトエンジニアリングの利点として最も適切なものはどれか。",
+    options: [
+      "常にファインチューニングより精度が高い",
+      "モデルのパラメータを更新せずに、指示文の工夫だけで出力を制御できるため、コストと手間が少ない",
+      "モデルの構造を変更できる",
+      "学習データが不要なため、どのタスクでも完璧な結果が得られる"
+    ],
+    answer: 1,
+    explanation: "プロンプトエンジニアリングは、モデルの再学習不要で、指示文（プロンプト）の設計のみで出力を制御します。ファインチューニングは高精度ですが、学習データの準備、計算コスト、時間が必要です。用途や要件に応じて使い分けることが重要です。"
+  },
+
+  // ── 法律・倫理・社会 ──
+  {
+    category: "法律・倫理・社会",
+    question: "EU AI Act（EU AI規則）におけるリスクベースアプローチの説明として最も適切なものはどれか。",
+    options: [
+      "全てのAIを一律に規制する",
+      "AIのリスクレベルを4段階に分類し、リスクに応じた規制を適用する",
+      "リスクの高いAIのみ全面禁止する",
+      "企業の自主規制に任せる"
+    ],
+    answer: 1,
+    explanation: "EU AI Act（2024年施行開始）は、AIを①許容できないリスク（禁止）、②ハイリスク（厳格な規制）、③限定リスク（透明性義務）、④最小リスク（規制なし）の4段階に分類し、リスクに応じた段階的な規制を適用するリスクベースアプローチを採用しています。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "著作権法第30条の4で定められた「情報解析のための利用」に関する規定の要点として最も適切なものはどれか。",
+    options: [
+      "情報解析のためであれば全ての著作物を無断で利用できる",
+      "著作権者の利益を不当に害しない範囲で、情報解析のために著作物を利用できる",
+      "情報解析には必ず著作権者の許諾が必要",
+      "AIの学習に著作物を使用することは全面的に禁止されている"
+    ],
+    answer: 1,
+    explanation: "日本の著作権法第30条の4は、著作物に表現された思想又は感情の享受を目的としない利用（情報解析を含む）について、著作権者の利益を不当に害しない限り、著作権者の許諾なく利用できると規定しています。AI学習への適用範囲は議論が続いています。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "「説明可能AI（XAI: Explainable AI）」が求められる主な理由として最も適切なものはどれか。",
+    options: [
+      "モデルの精度を向上させるため",
+      "AIの判断根拠を人間が理解・検証できるようにし、信頼性と説明責任を確保するため",
+      "AIの開発コストを削減するため",
+      "AIの計算速度を向上させるため"
+    ],
+    answer: 1,
+    explanation: "XAI（説明可能AI）は、AIの判断過程を人間が理解できる形で説明する技術・手法です。医療・金融・司法など高リスクな意思決定に利用する際の信頼性確保、法的な説明義務の充足、バイアスの発見、デバッグなどに重要です。LIME、SHAP、Grad-CAMなどの手法があります。"
+  },
+
+  // ── AIの社会実装 ──
+  {
+    category: "AIの社会実装",
+    question: "MLOps（Machine Learning Operations）の目的として最も適切なものはどれか。",
+    options: [
+      "機械学習モデルの精度のみを追求すること",
+      "機械学習モデルの開発・デプロイ・運用・監視のライフサイクルを効率化・自動化すること",
+      "機械学習の理論研究を推進すること",
+      "機械学習の教育プログラムを運営すること"
+    ],
+    answer: 1,
+    explanation: "MLOpsは、DevOpsの概念をMLに適用し、モデルの開発→学習→評価→デプロイ→監視→再学習のライフサイクル全体を効率化・自動化する実践です。データバージョニング、実験管理、CI/CD、モデルモニタリングなどを含みます。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "エッジAIの利点として最も適切なものはどれか。",
+    options: [
+      "常にクラウドAIより精度が高い",
+      "データをクラウドに送信せずにデバイス上で推論するため、低遅延かつプライバシーに配慮できる",
+      "学習も全てエッジで行える",
+      "インターネット環境が必須"
+    ],
+    answer: 1,
+    explanation: "エッジAIは、スマートフォン、IoTデバイス、車載機器など、データが生成される端末（エッジ）上で推論を行うアプローチです。クラウドにデータを送信しないため、低遅延、プライバシー保護、通信コスト削減などの利点があります。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "PoC（Proof of Concept）の目的として最も適切なものはどれか。",
+    options: [
+      "製品の最終リリースを行うこと",
+      "アイデアや技術の実現可能性を、小規模な実験で検証すること",
+      "プロジェクトの予算を確定すること",
+      "最終的なユーザーテストを実施すること"
+    ],
+    answer: 1,
+    explanation: "PoC（概念実証）は、AIプロジェクトの初期段階で、技術的に実現可能か、期待した精度が出るか、ビジネス価値があるかを小規模な実験で検証するプロセスです。PoCで有効性が確認されてから本格的な開発に進みます。"
+  },
+
+  // ── 追加の横断問題 ──
+  {
+    category: "ディープラーニングの手法",
+    question: "Few-shot学習の説明として最も適切なものはどれか。",
+    options: [
+      "大量のデータで学習する通常の手法",
+      "ごく少数（数例〜十数例）のサンプルだけで新しいタスクに適応する学習手法",
+      "学習なしで推論する手法",
+      "少数のパラメータだけを学習する手法"
+    ],
+    answer: 1,
+    explanation: "Few-shot学習は、新しいタスクやクラスに対して、ごく少数のサンプル（例: 1-shot=1例、5-shot=5例）だけで対応する手法です。メタ学習やLLMのin-context learning（プロンプトに例を数個提示する方法）として実現されます。"
+  },
+  {
+    category: "機械学習",
+    question: "アクティブラーニング（能動学習）の説明として最も適切なものはどれか。",
+    options: [
+      "学生が能動的に学ぶ教育手法",
+      "モデルが最も情報量の多いサンプルを選んでラベル付けを要求し、効率的に学習する手法",
+      "オンライン学習の別名",
+      "データ拡張の一種"
+    ],
+    answer: 1,
+    explanation: "アクティブラーニング（能動学習）は、モデルが最も不確実なサンプルや最も情報量が多いサンプルを自ら選び、それに対して人間にラベル付けを依頼する手法です。限られたアノテーション予算で効率的にモデル精度を向上させることができます。"
+  },
+  {
+    category: "数理・統計",
+    question: "ソフトマックス関数の入力が [2.0, 1.0, 0.1] の場合、最も大きな出力値を持つのは何番目の要素か。",
+    options: ["1番目（2.0に対応）", "2番目（1.0に対応）", "3番目（0.1に対応）", "全て同じ出力値"],
+    answer: 0,
+    explanation: "ソフトマックス関数は、各入力値の指数関数の値を、全入力の指数関数の値の合計で割ります。入力値が大きいほど出力値（確率）も大きくなるため、最大の入力値2.0に対応する1番目の要素が最も大きな出力値を持ちます。"
+  },
+  {
+    category: "生成AI",
+    question: "マルチモーダルAIの説明として最も適切なものはどれか。",
+    options: [
+      "1つのデータ型（テキストのみ等）を処理するAI",
+      "テキスト、画像、音声など複数の種類のデータを統合的に処理・生成できるAI",
+      "複数のGPUで分散処理するAI",
+      "複数の言語を処理できるAI"
+    ],
+    answer: 1,
+    explanation: "マルチモーダルAIは、テキスト、画像、音声、動画など複数のモダリティ（データの種類）を統合的に理解・処理・生成できるAIです。GPT-4V、Gemini、Claude（画像理解）などが代表例で、画像を見ながらテキストで回答するなどの処理が可能です。"
+  },
+  {
+    category: "法律・倫理・社会",
+    question: "「フィルターバブル」の説明として最も適切なものはどれか。",
+    options: [
+      "スパムメールをフィルタリングする技術",
+      "AIの推薦アルゴリズムにより、ユーザーが自分の好みに合った情報ばかりに囲まれ、多様な視点に触れにくくなる現象",
+      "AIがバブル経済を予測する手法",
+      "インターネット上の有害コンテンツをフィルタリングする技術"
+    ],
+    answer: 1,
+    explanation: "フィルターバブル（イーライ・パリサー提唱、2011年）は、検索エンジンやSNSの推薦アルゴリズムがユーザーの過去の行動に基づいて情報をフィルタリングすることで、ユーザーが「情報の泡」に閉じ込められ、多様な意見や視点に触れにくくなる現象です。"
+  },
+  {
+    category: "AIの社会実装",
+    question: "AI導入プロジェクトで最も重要な最初のステップとして一般的に言われることはどれか。",
+    options: [
+      "最新のAIモデルを選定すること",
+      "解決すべきビジネス課題を明確に定義すること",
+      "大量のデータを収集すること",
+      "GPUサーバーを調達すること"
+    ],
+    answer: 1,
+    explanation: "AI導入の最初のステップは、「何をAIで解決したいのか」というビジネス課題の明確な定義です。技術ありきではなく、課題ドリブンでアプローチすることが成功の鍵です。CRISP-DMでも最初のフェーズは「ビジネス理解」とされています。"
+  }
+];
+
+// ============================================================
+// App State
+// ============================================================
+// Generate a stable ID for each question based on content
+function questionId(q) {
+  return (q.category + '::' + q.question).substring(0, 120);
+}
+
+let state = {
+  mode: 10,
+  selectedCategories: [],
+  questionFilter: 'all', // 'all' | 'unseen' | 'seen'
+  currentQuestions: [],
+  currentIndex: 0,
+  correct: 0,
+  wrong: 0,
+  passed: 0,
+  answered: false,
+  wrongQuestions: [],
+  passedQuestions: [],
+  history: JSON.parse(localStorage.getItem('gkentei_history') || '{}'),
+  seenQuestions: JSON.parse(localStorage.getItem('gkentei_seen') || '{}')
+};
+
+// ============================================================
+// Init
+// ============================================================
+const categories = [...new Set(questions.map(q => q.category))];
+
+function init() {
+  updateCategoryChips();
+  updateSeenStats();
+  setQuestionFilter('all');
+}
+
+function updateCategoryChips() {
+  const chips = document.getElementById('categoryChips');
+  chips.innerHTML = categories.map(c => {
+    const total = questions.filter(q => q.category === c).length;
+    const seen = questions.filter(q => q.category === c && state.seenQuestions[questionId(q)]).length;
+    const isActive = state.selectedCategories.includes(c);
+    return `<div class="chip${isActive ? ' active' : ''}" onclick="toggleCategory(this, '${c}')">${c} <span class="chip-badge">${seen}/${total}</span></div>`;
+  }).join('');
+}
+
+function updateSeenStats() {
+  const totalQ = questions.length;
+  const seenQ = questions.filter(q => state.seenQuestions[questionId(q)]).length;
+  const unseenQ = totalQ - seenQ;
+  const wrongQ = questions.filter(q => { const s = state.seenQuestions[questionId(q)]; return s && s.wrong > 0; }).length;
+  const passedQ = questions.filter(q => { const s = state.seenQuestions[questionId(q)]; return s && s.passed > 0; }).length;
+  const pct = Math.round((seenQ / totalQ) * 100);
+  document.getElementById('seenStats').innerHTML =
+    `全 <strong>${totalQ}</strong> 問中 ` +
+    `<span class="seen-count">${seenQ}問 回答済み</span> / ` +
+    `<span class="unseen-count">${unseenQ}問 未回答</span>` +
+    (wrongQ > 0 ? ` / <span style="font-weight:700;color:var(--wrong);">${wrongQ}問 要復習</span>` : '') +
+    (passedQ > 0 ? ` / <span style="font-weight:700;color:#f59e0b;">${passedQ}問 パス</span>` : '') +
+    ` (進捗 ${pct}%)`;
+}
+
+function setQuestionFilter(filter) {
+  state.questionFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('filter' + filter.charAt(0).toUpperCase() + filter.slice(1)).classList.add('active');
+}
+
+function toggleCategory(el, cat) {
+  el.classList.toggle('active');
+  if (state.selectedCategories.includes(cat)) {
+    state.selectedCategories = state.selectedCategories.filter(c => c !== cat);
+  } else {
+    state.selectedCategories.push(cat);
+  }
+}
+
+function selectMode(el) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  state.mode = parseInt(el.dataset.count);
+}
+
+// ============================================================
+// Quiz Logic
+// ============================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  let pool = questions;
+  if (state.selectedCategories.length > 0) {
+    pool = questions.filter(q => state.selectedCategories.includes(q.category));
+  }
+  // Apply seen/unseen/wrong filter
+  if (state.questionFilter === 'unseen') {
+    pool = pool.filter(q => !state.seenQuestions[questionId(q)]);
+  } else if (state.questionFilter === 'seen') {
+    pool = pool.filter(q => state.seenQuestions[questionId(q)]);
+  } else if (state.questionFilter === 'wrong') {
+    pool = pool.filter(q => {
+      const s = state.seenQuestions[questionId(q)];
+      return s && s.wrong > 0;
+    });
+  } else if (state.questionFilter === 'passed') {
+    pool = pool.filter(q => {
+      const s = state.seenQuestions[questionId(q)];
+      return s && s.passed > 0;
+    });
+  }
+  if (pool.length === 0) {
+    const msgs = {
+      unseen: '未回答の問題がありません。すべて回答済みです!',
+      seen: '回答済みの問題がありません。まず問題を解いてみましょう!',
+      wrong: '間違えた問題がありません。素晴らしい!',
+      passed: 'パスした問題がありません!'
+    };
+    alert(msgs[state.questionFilter] || '該当する問題がありません。');
+    return;
+  }
+  pool = shuffle(pool);
+  const count = state.mode === 0 ? pool.length : Math.min(state.mode, pool.length);
+  state.currentQuestions = pool.slice(0, count);
+  state.currentIndex = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.passed = 0;
+  state.wrongQuestions = [];
+  state.passedQuestions = [];
+  state.answered = false;
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  document.getElementById('resultScreen').style.display = 'none';
+
+  renderQuestion();
+}
+
+function startWithQuestions(qs) {
+  state.currentQuestions = shuffle(qs);
+  state.currentIndex = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.passed = 0;
+  state.wrongQuestions = [];
+  state.passedQuestions = [];
+  state.answered = false;
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  document.getElementById('resultScreen').style.display = 'none';
+
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.currentQuestions[state.currentIndex];
+  const total = state.currentQuestions.length;
+  const idx = state.currentIndex;
+
+  document.getElementById('qCategory').textContent = q.category;
+  document.getElementById('qNumber').textContent = `Q${idx + 1} / ${total}`;
+  document.getElementById('qText').textContent = q.question;
+
+  const isSeen = state.seenQuestions[questionId(q)];
+  document.getElementById('qSeenBadge').innerHTML = isSeen
+    ? '<span class="question-seen-badge seen">回答済み</span>'
+    : '<span class="question-seen-badge new">初めて</span>';
+
+  const optionsArea = document.getElementById('optionsArea');
+  const labels = ['A', 'B', 'C', 'D'];
+  optionsArea.innerHTML = q.options.map((opt, i) =>
+    `<button class="option-btn" onclick="selectAnswer(${i})">
+      <span class="option-label">${labels[i]}</span>
+      <span>${opt}</span>
+    </button>`
+  ).join('');
+
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('btnRow').style.display = 'none';
+  document.getElementById('passBtn').style.display = 'block';
+  state.answered = false;
+
+  // Update progress
+  const pct = Math.round((idx / total) * 100);
+  document.getElementById('progressText').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  document.getElementById('progressBar').style.width = `${pct}%`;
+
+  updateStats();
+}
+
+function selectAnswer(idx) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const q = state.currentQuestions[state.currentIndex];
+  const btns = document.querySelectorAll('.option-btn');
+  const isCorrect = idx === q.answer;
+
+  btns.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.answer) btn.classList.add('correct');
+    if (i === idx && !isCorrect) btn.classList.add('wrong');
+    if (i === idx) btn.classList.add('selected');
+  });
+
+  if (isCorrect) {
+    state.correct++;
+  } else {
+    state.wrong++;
+    state.wrongQuestions.push(q);
+  }
+
+  // Mark question as seen
+  const qid = questionId(q);
+  if (!state.seenQuestions[qid]) {
+    state.seenQuestions[qid] = { firstSeen: Date.now(), correct: 0, wrong: 0, passed: 0 };
+  }
+  if (!state.seenQuestions[qid].passed) state.seenQuestions[qid].passed = 0;
+  state.seenQuestions[qid][isCorrect ? 'correct' : 'wrong']++;
+  state.seenQuestions[qid].lastSeen = Date.now();
+  localStorage.setItem('gkentei_seen', JSON.stringify(state.seenQuestions));
+
+  // Update category history
+  if (!state.history[q.category]) {
+    state.history[q.category] = { correct: 0, wrong: 0 };
+  }
+  state.history[q.category][isCorrect ? 'correct' : 'wrong']++;
+  localStorage.setItem('gkentei_history', JSON.stringify(state.history));
+
+  const badge = document.getElementById('resultBadge');
+  badge.innerHTML = isCorrect
+    ? '<span class="result-badge correct-badge">正解!</span>'
+    : '<span class="result-badge wrong-badge">不正解</span>';
+
+  document.getElementById('explanationText').textContent = q.explanation;
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('btnRow').style.display = 'flex';
+  document.getElementById('passBtn').style.display = 'none';
+
+  const isLast = state.currentIndex >= state.currentQuestions.length - 1;
+  document.getElementById('nextBtn').textContent = isLast ? '結果を見る' : '次の問題';
+
+  updateStats();
+}
+
+function passQuestion() {
+  if (state.answered) return;
+  state.answered = true;
+  state.passed++;
+
+  const q = state.currentQuestions[state.currentIndex];
+  state.passedQuestions.push(q);
+
+  // Mark as seen with pass
+  const qid = questionId(q);
+  if (!state.seenQuestions[qid]) {
+    state.seenQuestions[qid] = { firstSeen: Date.now(), correct: 0, wrong: 0, passed: 0 };
+  }
+  if (!state.seenQuestions[qid].passed) state.seenQuestions[qid].passed = 0;
+  state.seenQuestions[qid].passed++;
+  state.seenQuestions[qid].lastSeen = Date.now();
+  localStorage.setItem('gkentei_seen', JSON.stringify(state.seenQuestions));
+
+  // Show correct answer and explanation
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === q.answer) btn.classList.add('correct');
+  });
+
+  const badge = document.getElementById('resultBadge');
+  badge.innerHTML = '<span class="result-badge pass-badge">パス</span>';
+
+  document.getElementById('explanationText').textContent = q.explanation;
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('btnRow').style.display = 'flex';
+  document.getElementById('passBtn').style.display = 'none';
+
+  const isLast = state.currentIndex >= state.currentQuestions.length - 1;
+  document.getElementById('nextBtn').textContent = isLast ? '結果を見る' : '次の問題';
+
+  updateStats();
+}
+
+function nextQuestion() {
+  state.currentIndex++;
+  if (state.currentIndex >= state.currentQuestions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function updateStats() {
+  document.getElementById('correctCount').textContent = state.correct;
+  document.getElementById('wrongCount').textContent = state.wrong;
+  document.getElementById('passCount').textContent = state.passed;
+  const total = state.correct + state.wrong + state.passed;
+  document.getElementById('rateValue').textContent = total > 0
+    ? Math.round((state.correct / total) * 100) + '%'
+    : '-';
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+
+  const total = state.correct + state.wrong + state.passed;
+  const rate = total > 0 ? Math.round((state.correct / total) * 100) : 0;
+
+  document.getElementById('finalCorrect').textContent = state.correct;
+  document.getElementById('finalWrong').textContent = state.wrong;
+  document.getElementById('finalPass').textContent = state.passed;
+  document.getElementById('finalRate').textContent = rate + '%';
+
+  const msg = document.getElementById('resultMessage');
+  if (rate >= 90) {
+    msg.textContent = '素晴らしい! 合格レベルです!';
+    msg.style.color = 'var(--correct)';
+  } else if (rate >= 70) {
+    msg.textContent = 'いい調子です。もう少し頑張りましょう!';
+    msg.style.color = 'var(--primary)';
+  } else {
+    msg.textContent = '復習が必要です。苦手分野を集中的に学習しましょう。';
+    msg.style.color = 'var(--wrong)';
+  }
+
+  // Category breakdown
+  const catStats = {};
+  const wrongSet = new Set(state.wrongQuestions.map(q => q.question));
+  const passedSet = new Set(state.passedQuestions.map(q => q.question));
+  state.currentQuestions.forEach(q => {
+    if (!catStats[q.category]) catStats[q.category] = { correct: 0, wrong: 0, passed: 0 };
+    if (passedSet.has(q.question)) {
+      catStats[q.category].passed++;
+    } else if (wrongSet.has(q.question)) {
+      catStats[q.category].wrong++;
+    } else {
+      catStats[q.category].correct++;
+    }
+  });
+
+  let breakdownHTML = '<h3 style="font-size:0.95rem;margin-bottom:12px;">カテゴリ別結果</h3>';
+  breakdownHTML += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  for (const [cat, s] of Object.entries(catStats)) {
+    const catTotal = s.correct + s.wrong + s.passed;
+    const catRate = catTotal > 0 ? Math.round((s.correct / catTotal) * 100) : 0;
+    const barColor = catRate >= 70 ? 'var(--correct)' : catRate >= 50 ? '#f59e0b' : 'var(--wrong)';
+    breakdownHTML += `
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:4px;">
+          <span>${cat}</span>
+          <span style="font-weight:600;">${s.correct}/${catAnswered}${s.passed > 0 ? ` <span style="color:#f59e0b;">+${s.passed}パス</span>` : ''} (${catRate}%)</span>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${catRate}%;background:${barColor};border-radius:3px;"></div>
+        </div>
+      </div>`;
+  }
+  breakdownHTML += '</div>';
+  document.getElementById('categoryBreakdown').innerHTML = breakdownHTML;
+}
+
+function reviewWrong() {
+  if (state.wrongQuestions.length === 0) {
+    alert('間違えた問題はありません!');
+    return;
+  }
+  startWithQuestions(state.wrongQuestions);
+}
+
+function reviewPassed() {
+  if (state.passedQuestions.length === 0) {
+    alert('パスした問題はありません!');
+    return;
+  }
+  startWithQuestions(state.passedQuestions);
+}
+
+function resetQuiz() {
+  document.getElementById('startScreen').style.display = 'block';
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'none';
+  updateCategoryChips();
+  updateSeenStats();
+}
+
+function clearSeenHistory() {
+  if (!confirm('回答履歴をリセットしますか？\n全ての問題が「未回答」に戻ります。')) return;
+  state.seenQuestions = {};
+  state.history = {};
+  localStorage.removeItem('gkentei_seen');
+  localStorage.removeItem('gkentei_history');
+  updateCategoryChips();
+  updateSeenStats();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('quizScreen').style.display || document.getElementById('quizScreen').style.display === 'none') return;
+
+  if (!state.answered) {
+    if (e.key === '1' || e.key === 'a') selectAnswer(0);
+    else if (e.key === '2' || e.key === 'b') selectAnswer(1);
+    else if (e.key === '3' || e.key === 'c') selectAnswer(2);
+    else if (e.key === '4' || e.key === 'd') selectAnswer(3);
+    else if (e.key === 'p' || e.key === 'P') passQuestion();
+  } else {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'n') {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+});
+
+init();
+</script>
+</body>
+</html>
