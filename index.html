@@ -646,6 +646,31 @@ header p {
   color: #d97706;
 }
 
+/* Quit button */
+.quit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  background: var(--card);
+  color: var(--text-sub);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.quit-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
 .clear-history-btn {
   font-size: 0.75rem;
   color: var(--text-sub);
@@ -865,6 +890,16 @@ footer {
     transform: none;
   }
 
+  /* Quit button */
+  .quit-btn {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+  }
+
+  .quit-btn:hover {
+    transform: none;
+  }
+
   /* Pass button */
   .pass-btn {
     padding: 12px 24px;
@@ -1003,6 +1038,7 @@ footer {
 
   <!-- Quiz Screen -->
   <div id="quizScreen" style="display:none;">
+    <button class="quit-btn" onclick="quitQuiz()">← トップに戻る</button>
     <div class="stats-bar">
       <div class="stat-card stat-correct">
         <div class="stat-value" id="correctCount">0</div>
@@ -4265,6 +4301,11 @@ function reviewPassed() {
     return;
   }
   startWithQuestions(state.passedQuestions);
+}
+
+function quitQuiz() {
+  if (!confirm('学習を中断してトップに戻りますか？\n（ここまでの回答履歴は保存されます）')) return;
+  resetQuiz();
 }
 
 function resetQuiz() {
