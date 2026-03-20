@@ -646,6 +646,95 @@ header p {
   color: #d97706;
 }
 
+/* Exam countdown */
+.exam-countdown {
+  display: none;
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, var(--primary-light), #ede9fe);
+  border: 1px solid rgba(79,70,229,0.15);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.exam-countdown.show { display: block; }
+
+.exam-countdown::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), #ec4899);
+}
+
+.exam-countdown .countdown-days {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.exam-countdown .countdown-label {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.exam-countdown .countdown-date {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  margin-top: 6px;
+}
+
+.exam-countdown .countdown-edit {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 6px;
+}
+
+.exam-countdown .countdown-edit:hover { color: var(--primary); }
+
+.exam-countdown.past .countdown-days {
+  background: linear-gradient(135deg, var(--correct), #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.set-exam-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.set-exam-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  border-style: solid;
+}
+
 /* Quit button */
 .quit-btn {
   display: inline-flex;
@@ -986,6 +1075,12 @@ footer {
     <h1>G検定 学習ツール</h1>
     <p>JDLA ジェネラリスト検定 対策問題集</p>
   </header>
+
+  <!-- Exam Countdown -->
+  <div id="examCountdown" class="exam-countdown"></div>
+  <div id="setExamArea" style="text-align:center;">
+    <button class="set-exam-btn" onclick="promptExamDate()">📅 試験日を設定する</button>
+  </div>
 
   <!-- Start Screen -->
   <div id="startScreen">
@@ -3949,6 +4044,7 @@ let state = {
 const categories = [...new Set(questions.map(q => q.category))];
 
 function init() {
+  loadExamDate();
   updateCategoryChips();
   updateSeenStats();
   setQuestionFilter('all');
@@ -4303,6 +4399,87 @@ function reviewPassed() {
     return;
   }
   startWithQuestions(state.passedQuestions);
+}
+
+// ============================================================
+// Exam Countdown
+// ============================================================
+function loadExamDate() {
+  const saved = localStorage.getItem('gkentei_exam_date');
+  if (saved) {
+    updateCountdown(saved);
+  } else {
+    document.getElementById('setExamArea').style.display = 'block';
+    document.getElementById('examCountdown').classList.remove('show');
+  }
+}
+
+function promptExamDate() {
+  const current = localStorage.getItem('gkentei_exam_date') || '';
+  const input = prompt('試験日を入力してください（例: 2025-07-12）', current);
+  if (!input) return;
+  const parsed = new Date(input);
+  if (isNaN(parsed.getTime())) {
+    alert('日付の形式が正しくありません。\nYYYY-MM-DD の形式で入力してください。');
+    return;
+  }
+  const dateStr = parsed.toISOString().split('T')[0];
+  localStorage.setItem('gkentei_exam_date', dateStr);
+  updateCountdown(dateStr);
+}
+
+function updateCountdown(dateStr) {
+  const examDate = new Date(dateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffTime = examDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const el = document.getElementById('examCountdown');
+  const setArea = document.getElementById('setExamArea');
+
+  const year = examDate.getFullYear();
+  const month = examDate.getMonth() + 1;
+  const day = examDate.getDate();
+  const formatted = `${year}年${month}月${day}日`;
+
+  if (diffDays > 0) {
+    el.className = 'exam-countdown show';
+    el.innerHTML = `
+      <div class="countdown-days">あと ${diffDays} 日</div>
+      <div class="countdown-label">試験日まで</div>
+      <div class="countdown-date">${formatted}</div>
+      <button class="countdown-edit" onclick="promptExamDate()">日付を変更</button>
+      <button class="countdown-edit" onclick="clearExamDate()" style="margin-left:8px;">削除</button>
+    `;
+  } else if (diffDays === 0) {
+    el.className = 'exam-countdown show';
+    el.innerHTML = `
+      <div class="countdown-days">今日が試験日！</div>
+      <div class="countdown-label">頑張ってください！</div>
+      <div class="countdown-date">${formatted}</div>
+      <button class="countdown-edit" onclick="promptExamDate()">日付を変更</button>
+      <button class="countdown-edit" onclick="clearExamDate()" style="margin-left:8px;">削除</button>
+    `;
+  } else {
+    el.className = 'exam-countdown show past';
+    el.innerHTML = `
+      <div class="countdown-days">試験お疲れさまでした！</div>
+      <div class="countdown-label">${formatted} は ${Math.abs(diffDays)} 日前でした</div>
+      <button class="countdown-edit" onclick="promptExamDate()">次の試験日を設定</button>
+      <button class="countdown-edit" onclick="clearExamDate()" style="margin-left:8px;">削除</button>
+    `;
+  }
+
+  setArea.style.display = 'none';
+}
+
+function clearExamDate() {
+  if (!confirm('試験日の設定を削除しますか？')) return;
+  localStorage.removeItem('gkentei_exam_date');
+  document.getElementById('examCountdown').classList.remove('show');
+  document.getElementById('examCountdown').className = 'exam-countdown';
+  document.getElementById('setExamArea').style.display = 'block';
 }
 
 function quitQuiz() {
